@@ -495,10 +495,10 @@
 			"revisionTime": "2016-07-20T23:31:40Z"
 		},
 		{
-			"checksumSHA1": "era7cPiPrCcdoEeHB+kNNYLODfg=",
+			"checksumSHA1": "o9U0fbkAJEUAszp4RHNjrCZaaX0=",
 			"path": "github.com/henrikhodne/go-librato/librato",
-			"revision": "f82d1c74e11de20191cc53b762a2217d582b0596",
-			"revisionTime": "2017-06-05T03:23:04Z"
+			"revision": "92cd9647dc6914b228205c03def7f57f7248fbe8",
+			"revisionTime": "2017-06-25T18:27:10Z"
 		},
 		{
 			"checksumSHA1": "0ZrwvB6KoGPj2PoDNSEJwxQ6Mog=",
