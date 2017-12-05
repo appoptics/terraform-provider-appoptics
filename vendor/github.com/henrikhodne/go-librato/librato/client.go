@@ -44,10 +44,11 @@ type Client struct {
 	UserAgent string
 
 	// Services used to manipulate API entities.
-	Spaces   *SpacesService
-	Metrics  *MetricsService
-	Alerts   *AlertsService
-	Services *ServicesService
+	Spaces      *SpacesService
+	Metrics     *MetricsService
+	Alerts      *AlertsService
+	Services    *ServicesService
+	Annotations *AnnotationsService
 }
 
 // NewClient returns a new Librato API client bound to the public Librato API.
@@ -80,6 +81,7 @@ func NewClientWithBaseURL(baseURL *url.URL, email, token string) *Client {
 	c.Metrics = &MetricsService{client: c}
 	c.Alerts = &AlertsService{client: c}
 	c.Services = &ServicesService{client: c}
+	c.Annotations = &AnnotationsService{client: c}
 
 	return c
 }
@@ -140,7 +142,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 		return resp, err
 	}
 
-	if v != nil {
+	if v != nil && resp.ContentLength != 0 {
 		if w, ok := v.(io.Writer); ok {
 			_, err = io.Copy(w, resp.Body)
 		} else {
