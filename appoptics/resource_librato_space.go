@@ -1,4 +1,4 @@
-package librato
+package appoptics
 
 import (
 	"fmt"
@@ -11,12 +11,12 @@ import (
 	"github.com/henrikhodne/go-librato/librato"
 )
 
-func resourceLibratoSpace() *schema.Resource {
+func resourceAppOpticsSpace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceLibratoSpaceCreate,
-		Read:   resourceLibratoSpaceRead,
-		Update: resourceLibratoSpaceUpdate,
-		Delete: resourceLibratoSpaceDelete,
+		Create: resourceAppOpticsSpaceCreate,
+		Read:   resourceAppOpticsSpaceRead,
+		Update: resourceAppOpticsSpaceUpdate,
+		Delete: resourceAppOpticsSpaceDelete,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -32,14 +32,14 @@ func resourceLibratoSpace() *schema.Resource {
 	}
 }
 
-func resourceLibratoSpaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppOpticsSpaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*librato.Client)
 
 	name := d.Get("name").(string)
 
 	space, _, err := client.Spaces.Create(&librato.Space{Name: librato.String(name)})
 	if err != nil {
-		return fmt.Errorf("Error creating Librato space %s: %s", name, err)
+		return fmt.Errorf("Error creating AppOptics space %s: %s", name, err)
 	}
 
 	resource.Retry(1*time.Minute, func() *resource.RetryError {
@@ -53,10 +53,10 @@ func resourceLibratoSpaceCreate(d *schema.ResourceData, meta interface{}) error 
 		return nil
 	})
 
-	return resourceLibratoSpaceReadResult(d, space)
+	return resourceAppOpticsSpaceReadResult(d, space)
 }
 
-func resourceLibratoSpaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppOpticsSpaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*librato.Client)
 
 	id, err := strconv.ParseUint(d.Id(), 10, 0)
@@ -70,13 +70,13 @@ func resourceLibratoSpaceRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Librato Space %s: %s", d.Id(), err)
+		return fmt.Errorf("Error reading AppOptics Space %s: %s", d.Id(), err)
 	}
 
-	return resourceLibratoSpaceReadResult(d, space)
+	return resourceAppOpticsSpaceReadResult(d, space)
 }
 
-func resourceLibratoSpaceReadResult(d *schema.ResourceData, space *librato.Space) error {
+func resourceAppOpticsSpaceReadResult(d *schema.ResourceData, space *librato.Space) error {
 	d.SetId(strconv.FormatUint(uint64(*space.ID), 10))
 	if err := d.Set("id", *space.ID); err != nil {
 		return err
@@ -87,7 +87,7 @@ func resourceLibratoSpaceReadResult(d *schema.ResourceData, space *librato.Space
 	return nil
 }
 
-func resourceLibratoSpaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppOpticsSpaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*librato.Client)
 	id, err := strconv.ParseUint(d.Id(), 10, 0)
 	if err != nil {
@@ -102,10 +102,10 @@ func resourceLibratoSpaceUpdate(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	return resourceLibratoSpaceRead(d, meta)
+	return resourceAppOpticsSpaceRead(d, meta)
 }
 
-func resourceLibratoSpaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppOpticsSpaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*librato.Client)
 	id, err := strconv.ParseUint(d.Id(), 10, 0)
 	if err != nil {

@@ -1,4 +1,4 @@
-package librato
+package appoptics
 
 import (
 	"encoding/json"
@@ -11,12 +11,12 @@ import (
 	"github.com/henrikhodne/go-librato/librato"
 )
 
-func resourceLibratoMetric() *schema.Resource {
+func resourceAppOpticsMetric() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceLibratoMetricCreate,
-		Read:   resourceLibratoMetricRead,
-		Update: resourceLibratoMetricUpdate,
-		Delete: resourceLibratoMetricDelete,
+		Create: resourceAppOpticsMetricCreate,
+		Read:   resourceAppOpticsMetricRead,
+		Update: resourceAppOpticsMetricUpdate,
+		Delete: resourceAppOpticsMetricDelete,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -94,7 +94,7 @@ func resourceLibratoMetric() *schema.Resource {
 	}
 }
 
-func resourceLibratoMetricCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppOpticsMetricCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*librato.Client)
 
 	metric := librato.Metric{
@@ -154,7 +154,7 @@ func resourceLibratoMetricCreate(d *schema.ResourceData, meta interface{}) error
 	_, err := client.Metrics.Update(&metric)
 	if err != nil {
 		log.Printf("[INFO] ERROR creating Metric: %s", err)
-		return fmt.Errorf("Error creating Librato metric: %s", err)
+		return fmt.Errorf("Error creating AppOptics metric: %s", err)
 	}
 
 	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
@@ -168,26 +168,26 @@ func resourceLibratoMetricCreate(d *schema.ResourceData, meta interface{}) error
 		return nil
 	})
 	if retryErr != nil {
-		return fmt.Errorf("Error creating Librato metric: %s", retryErr)
+		return fmt.Errorf("Error creating AppOptics metric: %s", retryErr)
 	}
 
 	d.SetId(*metric.Name)
-	return resourceLibratoMetricRead(d, meta)
+	return resourceAppOpticsMetricRead(d, meta)
 }
 
-func resourceLibratoMetricRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppOpticsMetricRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*librato.Client)
 
 	id := d.Id()
 
-	log.Printf("[INFO] Reading Librato Metric: %s", id)
+	log.Printf("[INFO] Reading AppOptics Metric: %s", id)
 	metric, _, err := client.Metrics.Get(id)
 	if err != nil {
 		if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Librato Metric %s: %s", id, err)
+		return fmt.Errorf("Error reading AppOptics Metric %s: %s", id, err)
 	}
 
 	d.Set("name", metric.Name)
@@ -220,7 +220,7 @@ func resourceLibratoMetricRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceLibratoMetricUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppOpticsMetricUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*librato.Client)
 
 	id := d.Id()
@@ -278,16 +278,16 @@ func resourceLibratoMetricUpdate(d *schema.ResourceData, meta interface{}) error
 		metric.Attributes = attributes
 	}
 
-	log.Printf("[INFO] Updating Librato metric: %v", structToString(metric))
+	log.Printf("[INFO] Updating AppOptics metric: %v", structToString(metric))
 
 	_, err := client.Metrics.Update(metric)
 	if err != nil {
-		return fmt.Errorf("Error updating Librato metric: %s", err)
+		return fmt.Errorf("Error updating AppOptics metric: %s", err)
 	}
 
-	log.Printf("[INFO] Updated Librato metric %s", id)
+	log.Printf("[INFO] Updated AppOptics metric %s", id)
 
-	// Wait for propagation since Librato updates are eventually consistent
+	// Wait for propagation since AppOptics updates are eventually consistent
 	wait := resource.StateChangeConf{
 		Pending:                   []string{fmt.Sprintf("%t", false)},
 		Target:                    []string{fmt.Sprintf("%t", true)},
@@ -295,7 +295,7 @@ func resourceLibratoMetricUpdate(d *schema.ResourceData, meta interface{}) error
 		MinTimeout:                2 * time.Second,
 		ContinuousTargetOccurence: 5,
 		Refresh: func() (interface{}, string, error) {
-			log.Printf("[INFO] Checking if Librato Metric %s was updated yet", id)
+			log.Printf("[INFO] Checking if AppOptics Metric %s was updated yet", id)
 			changedMetric, _, getErr := client.Metrics.Get(id)
 			if getErr != nil {
 				return changedMetric, "", getErr
@@ -306,14 +306,14 @@ func resourceLibratoMetricUpdate(d *schema.ResourceData, meta interface{}) error
 
 	_, err = wait.WaitForState()
 	if err != nil {
-		log.Printf("[INFO] ERROR - Failed updating Librato Metric %s: %s", id, err)
-		return fmt.Errorf("Failed updating Librato Metric %s: %s", id, err)
+		log.Printf("[INFO] ERROR - Failed updating AppOptics Metric %s: %s", id, err)
+		return fmt.Errorf("Failed updating AppOptics Metric %s: %s", id, err)
 	}
 
-	return resourceLibratoMetricRead(d, meta)
+	return resourceAppOpticsMetricRead(d, meta)
 }
 
-func resourceLibratoMetricDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppOpticsMetricDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*librato.Client)
 
 	id := d.Id()

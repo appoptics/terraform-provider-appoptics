@@ -1,4 +1,4 @@
-package librato
+package appoptics
 
 import (
 	"bytes"
@@ -15,12 +15,12 @@ import (
 	"github.com/henrikhodne/go-librato/librato"
 )
 
-func resourceLibratoSpaceChart() *schema.Resource {
+func resourceAppOpticsSpaceChart() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceLibratoSpaceChartCreate,
-		Read:   resourceLibratoSpaceChartRead,
-		Update: resourceLibratoSpaceChartUpdate,
-		Delete: resourceLibratoSpaceChartDelete,
+		Create: resourceAppOpticsSpaceChartCreate,
+		Read:   resourceAppOpticsSpaceChartRead,
+		Update: resourceAppOpticsSpaceChartUpdate,
+		Delete: resourceAppOpticsSpaceChartDelete,
 
 		Schema: map[string]*schema.Schema{
 			"space_id": {
@@ -120,13 +120,13 @@ func resourceLibratoSpaceChart() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceLibratoSpaceChartHash,
+				Set: resourceAppOpticsSpaceChartHash,
 			},
 		},
 	}
 }
 
-func resourceLibratoSpaceChartHash(v interface{}) int {
+func resourceAppOpticsSpaceChartHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%s-", m["metric"].(string)))
@@ -136,7 +136,7 @@ func resourceLibratoSpaceChartHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func resourceLibratoSpaceChartCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*librato.Client)
 
 	spaceID := uint(d.Get("space_id").(int))
@@ -214,7 +214,7 @@ func resourceLibratoSpaceChartCreate(d *schema.ResourceData, meta interface{}) e
 
 	spaceChartResult, _, err := client.Spaces.CreateChart(spaceID, spaceChart)
 	if err != nil {
-		return fmt.Errorf("Error creating Librato space chart %s: %s", *spaceChart.Name, err)
+		return fmt.Errorf("Error creating AppOptics space chart %s: %s", *spaceChart.Name, err)
 	}
 
 	resource.Retry(1*time.Minute, func() *resource.RetryError {
@@ -228,10 +228,10 @@ func resourceLibratoSpaceChartCreate(d *schema.ResourceData, meta interface{}) e
 		return nil
 	})
 
-	return resourceLibratoSpaceChartReadResult(d, spaceChartResult)
+	return resourceAppOpticsSpaceChartReadResult(d, spaceChartResult)
 }
 
-func resourceLibratoSpaceChartRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppOpticsSpaceChartRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*librato.Client)
 
 	spaceID := uint(d.Get("space_id").(int))
@@ -247,13 +247,13 @@ func resourceLibratoSpaceChartRead(d *schema.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Librato Space chart %s: %s", d.Id(), err)
+		return fmt.Errorf("Error reading AppOptics Space chart %s: %s", d.Id(), err)
 	}
 
-	return resourceLibratoSpaceChartReadResult(d, chart)
+	return resourceAppOpticsSpaceChartReadResult(d, chart)
 }
 
-func resourceLibratoSpaceChartReadResult(d *schema.ResourceData, chart *librato.SpaceChart) error {
+func resourceAppOpticsSpaceChartReadResult(d *schema.ResourceData, chart *librato.SpaceChart) error {
 	d.SetId(strconv.FormatUint(uint64(*chart.ID), 10))
 	if chart.Name != nil {
 		if err := d.Set("name", *chart.Name); err != nil {
@@ -286,7 +286,7 @@ func resourceLibratoSpaceChartReadResult(d *schema.ResourceData, chart *librato.
 		}
 	}
 
-	streams := resourceLibratoSpaceChartStreamsGather(d, chart.Streams)
+	streams := resourceAppOpticsSpaceChartStreamsGather(d, chart.Streams)
 	if err := d.Set("stream", streams); err != nil {
 		return err
 	}
@@ -294,7 +294,7 @@ func resourceLibratoSpaceChartReadResult(d *schema.ResourceData, chart *librato.
 	return nil
 }
 
-func resourceLibratoSpaceChartStreamsGather(d *schema.ResourceData, streams []librato.SpaceChartStream) []map[string]interface{} {
+func resourceAppOpticsSpaceChartStreamsGather(d *schema.ResourceData, streams []librato.SpaceChartStream) []map[string]interface{} {
 	retStreams := make([]map[string]interface{}, 0, len(streams))
 	for _, s := range streams {
 		stream := make(map[string]interface{})
@@ -331,7 +331,7 @@ func resourceLibratoSpaceChartStreamsGather(d *schema.ResourceData, streams []li
 	return retStreams
 }
 
-func resourceLibratoSpaceChartUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*librato.Client)
 
 	spaceID := uint(d.Get("space_id").(int))
@@ -422,10 +422,10 @@ func resourceLibratoSpaceChartUpdate(d *schema.ResourceData, meta interface{}) e
 
 	_, err = client.Spaces.UpdateChart(spaceID, uint(chartID), spaceChart)
 	if err != nil {
-		return fmt.Errorf("Error updating Librato space chart %s: %s", *spaceChart.Name, err)
+		return fmt.Errorf("Error updating AppOptics space chart %s: %s", *spaceChart.Name, err)
 	}
 
-	// Wait for propagation since Librato updates are eventually consistent
+	// Wait for propagation since AppOptics updates are eventually consistent
 	wait := resource.StateChangeConf{
 		Pending:                   []string{fmt.Sprintf("%t", false)},
 		Target:                    []string{fmt.Sprintf("%t", true)},
@@ -433,26 +433,26 @@ func resourceLibratoSpaceChartUpdate(d *schema.ResourceData, meta interface{}) e
 		MinTimeout:                2 * time.Second,
 		ContinuousTargetOccurence: 5,
 		Refresh: func() (interface{}, string, error) {
-			log.Printf("[DEBUG] Checking if Librato Space Chart %d was updated yet", chartID)
+			log.Printf("[DEBUG] Checking if AppOptics Space Chart %d was updated yet", chartID)
 			changedChart, _, getErr := client.Spaces.GetChart(spaceID, uint(chartID))
 			if getErr != nil {
 				return changedChart, "", getErr
 			}
 			isEqual := reflect.DeepEqual(*fullChart, *changedChart)
-			log.Printf("[DEBUG] Updated Librato Space Chart %d match: %t", chartID, isEqual)
+			log.Printf("[DEBUG] Updated AppOptics Space Chart %d match: %t", chartID, isEqual)
 			return changedChart, fmt.Sprintf("%t", isEqual), nil
 		},
 	}
 
 	_, err = wait.WaitForState()
 	if err != nil {
-		return fmt.Errorf("Failed updating Librato Space Chart %d: %s", chartID, err)
+		return fmt.Errorf("Failed updating AppOptics Space Chart %d: %s", chartID, err)
 	}
 
-	return resourceLibratoSpaceChartRead(d, meta)
+	return resourceAppOpticsSpaceChartRead(d, meta)
 }
 
-func resourceLibratoSpaceChartDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppOpticsSpaceChartDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*librato.Client)
 
 	spaceID := uint(d.Get("space_id").(int))

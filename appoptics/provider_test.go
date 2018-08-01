@@ -1,4 +1,4 @@
-package librato
+package appoptics
 
 import (
 	"os"
@@ -14,7 +14,7 @@ var testAccProvider *schema.Provider
 func init() {
 	testAccProvider = Provider().(*schema.Provider)
 	testAccProviders = map[string]terraform.ResourceProvider{
-		"librato": testAccProvider,
+		"appoptics": testAccProvider,
 	}
 }
 
