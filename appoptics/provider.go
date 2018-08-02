@@ -37,7 +37,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	if appOpticsUrl := os.Getenv("APPOPTICS_URL"); appOpticsUrl != "" {
 		url, _ = url.Parse(appOpticsUrl)
 	} else {
-		url, _ = url.Parse("https://api.appoptics.com/v1/measurements/v1")
+		url, _ = url.Parse("https://api.appoptics.com/v1/")
 	}
 	client := librato.NewClientWithBaseURL(url, "token", d.Get("token").(string))
 	return client, nil
