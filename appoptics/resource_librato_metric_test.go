@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/appoptics/go-librato/librato"
+	"github.com/akahn/go-librato/librato"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"

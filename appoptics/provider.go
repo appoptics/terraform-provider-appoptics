@@ -1,7 +1,7 @@
 package appoptics
 
 import (
-	"github.com/appoptics/go-librato/librato"
+	"github.com/akahn/go-librato/librato"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"net/url"

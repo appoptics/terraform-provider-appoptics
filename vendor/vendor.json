@@ -3,6 +3,12 @@
 	"ignore": "appengine test github.com/hashicorp/nomad/ github.com/hashicorp/terraform/backend",
 	"package": [
 		{
+			"checksumSHA1": "nuIep8GL0QcG5+ECOliTWn7DEVg=",
+			"path": "github.com/akahn/go-librato/librato",
+			"revision": "994aa1265ee623bf8d16aff41b041a532bebcf25",
+			"revisionTime": "2017-10-24T21:52:50Z"
+		},
+		{
 			"checksumSHA1": "FIL83loX9V9APvGQIjJpbxq53F0=",
 			"path": "github.com/apparentlymart/go-cidr/cidr",
 			"revision": "7e4b007599d4e2076d9a81be723b3912852dda2c",
@@ -519,12 +525,6 @@
 			"path": "github.com/hashicorp/yamux",
 			"revision": "d1caa6c97c9fc1cc9e83bbe34d0603f9ff0ce8bd",
 			"revisionTime": "2016-07-20T23:31:40Z"
-		},
-		{
-			"checksumSHA1": "Byj4rRoQ8/KfGkNSE2SCMityh0w=",
-			"path": "github.com/henrikhodne/go-librato/librato",
-			"revision": "cd4baae4da94deaa0cfcf819c048a0e6a041c37a",
-			"revisionTime": "2017-10-24T21:52:50Z"
 		},
 		{
 			"checksumSHA1": "0ZrwvB6KoGPj2PoDNSEJwxQ6Mog=",
