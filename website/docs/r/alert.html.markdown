@@ -1,29 +1,29 @@
 ---
-layout: "librato"
-page_title: "Librato: librato_alert"
-sidebar_current: "docs-librato-resource-alert"
+layout: "appoptics"
+page_title: "AppOptics: appoptics_alert"
+sidebar_current: "docs-appoptics-resource-alert"
 description: |-
-  Provides a Librato Alert resource. This can be used to create and manage alerts on Librato.
+  Provides a AppOptics Alert resource. This can be used to create and manage alerts on AppOptics.
 ---
 
-# librato\_alert
+# appoptics\_alert
 
-Provides a Librato Alert resource. This can be used to
-create and manage alerts on Librato.
+Provides a AppOptics Alert resource. This can be used to
+create and manage alerts on AppOptics.
 
 ## Example Usage
 
 ```hcl
-# Create a new Librato alert
-resource "librato_alert" "myalert" {
+# Create a new AppOptics alert
+resource "appoptics_alert" "myalert" {
   name        = "MyAlert"
   description = "A Test Alert"
-  services    = ["${librato_service.myservice.id}"]
+  services    = ["${appoptics_service.myservice.id}"]
 
   condition {
     type        = "above"
     threshold   = 10
-    metric_name = "librato.cpu.percent.idle"
+    metric_name = "appoptics.cpu.percent.idle"
   }
 }
 ```
@@ -64,4 +64,4 @@ Conditions (`condition`) support the following:
 
 Attributes (`attributes`) support the following:
 
-* `runbook_url` - a URL for the runbook to be followed when this alert is firing. Used in the Librato UI if set.
+* `runbook_url` - a URL for the runbook to be followed when this alert is firing. Used in the AppOptics UI if set.

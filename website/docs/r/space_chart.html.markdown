@@ -1,28 +1,28 @@
 ---
-layout: "librato"
-page_title: "Librato: librato_space_chart"
-sidebar_current: "docs-librato-resource-space-chart"
+layout: "appoptics"
+page_title: "AppOptics: appoptics_space_chart"
+sidebar_current: "docs-appoptics-resource-space-chart"
 description: |-
-  Provides a Librato Space Chart resource. This can be used to create and manage charts in Librato Spaces.
+  Provides a AppOptics Space Chart resource. This can be used to create and manage charts in AppOptics Spaces.
 ---
 
-# librato\_space\_chart
+# appoptics\_space\_chart
 
-Provides a Librato Space Chart resource. This can be used to
-create and manage charts in Librato Spaces.
+Provides a AppOptics Space Chart resource. This can be used to
+create and manage charts in AppOptics Spaces.
 
 ## Example Usage
 
 ```hcl
-# Create a new Librato space
-resource "librato_space" "my_space" {
+# Create a new AppOptics space
+resource "appoptics_space" "my_space" {
   name = "My New Space"
 }
 
 # Create a new chart
-resource "librato_space_chart" "server_temperature" {
+resource "appoptics_space_chart" "server_temperature" {
   name     = "Server Temperature"
-  space_id = "${librato_space.my_space.id}"
+  space_id = "${appoptics_space.my_space.id}"
 
   stream {
     metric = "server_temp"
