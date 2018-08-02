@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/appoptics/go-librato/librato"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/henrikhodne/go-librato/librato"
 )
 
 func TestAccLibratoSpace_Basic(t *testing.T) {
@@ -23,10 +23,10 @@ func TestAccLibratoSpace_Basic(t *testing.T) {
 			{
 				Config: testAccCheckLibratoSpaceConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLibratoSpaceExists("librato_space.foobar", &space),
+					testAccCheckLibratoSpaceExists("appoptics_space.foobar", &space),
 					testAccCheckLibratoSpaceAttributes(&space, name),
 					resource.TestCheckResourceAttr(
-						"librato_space.foobar", "name", name),
+						"appoptics_space.foobar", "name", name),
 				),
 			},
 		},
@@ -37,7 +37,7 @@ func testAccCheckLibratoSpaceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*librato.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "librato_space" {
+		if rs.Type != "appoptics_space" {
 			continue
 		}
 
@@ -104,7 +104,7 @@ func testAccCheckLibratoSpaceExists(n string, space *librato.Space) resource.Tes
 
 func testAccCheckLibratoSpaceConfig_basic(name string) string {
 	return fmt.Sprintf(`
-resource "librato_space" "foobar" {
+resource "appoptics_space" "foobar" {
     name = "%s"
 }`, name)
 }

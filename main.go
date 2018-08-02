@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/hashicorp/terraform/plugin"
-	"github.com/terraform-providers/terraform-provider-librato/librato"
+	"github.com/terraform-providers/terraform-provider-librato/appoptics"
 )
 
 func main() {
 	plugin.Serve(&plugin.ServeOpts{
-		ProviderFunc: librato.Provider})
+		ProviderFunc: appoptics.Provider})
 }

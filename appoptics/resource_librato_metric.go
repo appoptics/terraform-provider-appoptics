@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/appoptics/go-librato/librato"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/henrikhodne/go-librato/librato"
 )
 
 func resourceAppOpticsMetric() *schema.Resource {
@@ -23,10 +23,6 @@ func resourceAppOpticsMetric() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: false,
-			},
-			"type": {
-				Type:     schema.TypeString,
-				Required: true,
 			},
 			"display_name": {
 				Type:     schema.TypeString,
@@ -99,7 +95,7 @@ func resourceAppOpticsMetricCreate(d *schema.ResourceData, meta interface{}) err
 
 	metric := librato.Metric{
 		Name: librato.String(d.Get("name").(string)),
-		Type: librato.String(d.Get("type").(string)),
+		Type: librato.String("gauge"),
 	}
 	if a, ok := d.GetOk("display_name"); ok {
 		metric.DisplayName = librato.String(a.(string))
@@ -112,6 +108,7 @@ func resourceAppOpticsMetricCreate(d *schema.ResourceData, meta interface{}) err
 	}
 	if a, ok := d.GetOk("composite"); ok {
 		metric.Composite = librato.String(a.(string))
+		metric.Type = librato.String("composite")
 	}
 
 	if a, ok := d.GetOk("attributes"); ok {

@@ -29,11 +29,7 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("LIBRATO_EMAIL"); v == "" {
-		t.Fatal("LIBRATO_EMAIL must be set for acceptance tests")
-	}
-
-	if v := os.Getenv("LIBRATO_TOKEN"); v == "" {
-		t.Fatal("LIBRATO_TOKEN must be set for acceptance tests")
+	if v := os.Getenv("APPOPTICS_TOKEN"); v == "" {
+		t.Fatal("APPOPTICS_TOKEN must be set for acceptance tests")
 	}
 }

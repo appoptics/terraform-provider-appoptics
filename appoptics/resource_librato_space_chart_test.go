@@ -5,88 +5,88 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/appoptics/go-librato/librato"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/henrikhodne/go-librato/librato"
 )
 
-func TestAccLibratoSpaceChart_Basic(t *testing.T) {
+func TestAccAppOpticsSpaceChart_Basic(t *testing.T) {
 	var spaceChart librato.SpaceChart
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckLibratoSpaceChartDestroy,
+		CheckDestroy: testAccCheckAppOpticsSpaceChartDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccCheckLibratoSpaceChartConfig_basic,
+				Config: testAccCheckAppOpticsSpaceChartConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLibratoSpaceChartExists("librato_space_chart.foobar", &spaceChart),
-					testAccCheckLibratoSpaceChartName(&spaceChart, "Foo Bar"),
+					testAccCheckAppOpticsSpaceChartExists("appoptics_space_chart.foobar", &spaceChart),
+					testAccCheckAppOpticsSpaceChartName(&spaceChart, "Foo Bar"),
 					resource.TestCheckResourceAttr(
-						"librato_space_chart.foobar", "name", "Foo Bar"),
+						"appoptics_space_chart.foobar", "name", "Foo Bar"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccLibratoSpaceChart_Full(t *testing.T) {
+func TestAccAppOpticsSpaceChart_Full(t *testing.T) {
 	var spaceChart librato.SpaceChart
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckLibratoSpaceChartDestroy,
+		CheckDestroy: testAccCheckAppOpticsSpaceChartDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccCheckLibratoSpaceChartConfig_full,
+				Config: testAccCheckAppOpticsSpaceChartConfig_full,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLibratoSpaceChartExists("librato_space_chart.foobar", &spaceChart),
-					testAccCheckLibratoSpaceChartName(&spaceChart, "Foo Bar"),
+					testAccCheckAppOpticsSpaceChartExists("appoptics_space_chart.foobar", &spaceChart),
+					testAccCheckAppOpticsSpaceChartName(&spaceChart, "Foo Bar"),
 					resource.TestCheckResourceAttr(
-						"librato_space_chart.foobar", "name", "Foo Bar"),
+						"appoptics_space_chart.foobar", "name", "Foo Bar"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccLibratoSpaceChart_Updated(t *testing.T) {
+func TestAccAppOpticsSpaceChart_Updated(t *testing.T) {
 	var spaceChart librato.SpaceChart
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckLibratoSpaceChartDestroy,
+		CheckDestroy: testAccCheckAppOpticsSpaceChartDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccCheckLibratoSpaceChartConfig_basic,
+				Config: testAccCheckAppOpticsSpaceChartConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLibratoSpaceChartExists("librato_space_chart.foobar", &spaceChart),
-					testAccCheckLibratoSpaceChartName(&spaceChart, "Foo Bar"),
+					testAccCheckAppOpticsSpaceChartExists("appoptics_space_chart.foobar", &spaceChart),
+					testAccCheckAppOpticsSpaceChartName(&spaceChart, "Foo Bar"),
 					resource.TestCheckResourceAttr(
-						"librato_space_chart.foobar", "name", "Foo Bar"),
+						"appoptics_space_chart.foobar", "name", "Foo Bar"),
 				),
 			},
 			resource.TestStep{
-				Config: testAccCheckLibratoSpaceChartConfig_new_value,
+				Config: testAccCheckAppOpticsSpaceChartConfig_new_value,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLibratoSpaceChartExists("librato_space_chart.foobar", &spaceChart),
-					testAccCheckLibratoSpaceChartName(&spaceChart, "Bar Baz"),
+					testAccCheckAppOpticsSpaceChartExists("appoptics_space_chart.foobar", &spaceChart),
+					testAccCheckAppOpticsSpaceChartName(&spaceChart, "Bar Baz"),
 					resource.TestCheckResourceAttr(
-						"librato_space_chart.foobar", "name", "Bar Baz"),
+						"appoptics_space_chart.foobar", "name", "Bar Baz"),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckLibratoSpaceChartDestroy(s *terraform.State) error {
+func testAccCheckAppOpticsSpaceChartDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*librato.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "librato_space_chart" {
+		if rs.Type != "appoptics_space_chart" {
 			continue
 		}
 
@@ -110,7 +110,7 @@ func testAccCheckLibratoSpaceChartDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckLibratoSpaceChartName(spaceChart *librato.SpaceChart, name string) resource.TestCheckFunc {
+func testAccCheckAppOpticsSpaceChartName(spaceChart *librato.SpaceChart, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
 		if spaceChart.Name == nil || *spaceChart.Name != name {
@@ -121,7 +121,7 @@ func testAccCheckLibratoSpaceChartName(spaceChart *librato.SpaceChart, name stri
 	}
 }
 
-func testAccCheckLibratoSpaceChartExists(n string, spaceChart *librato.SpaceChart) resource.TestCheckFunc {
+func testAccCheckAppOpticsSpaceChartExists(n string, spaceChart *librato.SpaceChart) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
@@ -161,45 +161,45 @@ func testAccCheckLibratoSpaceChartExists(n string, spaceChart *librato.SpaceChar
 	}
 }
 
-const testAccCheckLibratoSpaceChartConfig_basic = `
-resource "librato_space" "foobar" {
+const testAccCheckAppOpticsSpaceChartConfig_basic = `
+resource "appoptics_space" "foobar" {
     name = "Foo Bar"
 }
 
-resource "librato_space_chart" "foobar" {
-    space_id = "${librato_space.foobar.id}"
+resource "appoptics_space_chart" "foobar" {
+    space_id = "${appoptics_space.foobar.id}"
     name = "Foo Bar"
     type = "line"
 }`
 
-const testAccCheckLibratoSpaceChartConfig_new_value = `
-resource "librato_space" "foobar" {
+const testAccCheckAppOpticsSpaceChartConfig_new_value = `
+resource "appoptics_space" "foobar" {
     name = "Foo Bar"
 }
 
-resource "librato_space_chart" "foobar" {
-    space_id = "${librato_space.foobar.id}"
+resource "appoptics_space_chart" "foobar" {
+    space_id = "${appoptics_space.foobar.id}"
     name = "Bar Baz"
     type = "line"
 }`
 
-const testAccCheckLibratoSpaceChartConfig_full = `
-resource "librato_space" "foobar" {
+const testAccCheckAppOpticsSpaceChartConfig_full = `
+resource "appoptics_space" "foobar" {
     name = "Foo Bar"
 }
 
-resource "librato_space" "barbaz" {
+resource "appoptics_space" "barbaz" {
     name = "Bar Baz"
 }
 
-resource "librato_space_chart" "foobar" {
-    space_id = "${librato_space.foobar.id}"
+resource "appoptics_space_chart" "foobar" {
+    space_id = "${appoptics_space.foobar.id}"
     name = "Foo Bar"
     type = "line"
     min = 0
     max = 100
     label = "Percent"
-    related_space = "${librato_space.barbaz.id}"
+    related_space = "${appoptics_space.barbaz.id}"
 
     # Minimal metric stream
     stream {
