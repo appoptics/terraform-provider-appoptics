@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/appoptics/terraform-provider-appoptics/appoptics"
 	"github.com/hashicorp/terraform/plugin"
-	"github.com/terraform-providers/terraform-provider-librato/appoptics"
 )
 
 func main() {
