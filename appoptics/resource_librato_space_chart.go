@@ -34,8 +34,8 @@ func resourceAppOpticsSpaceChart() *schema.Resource {
 			},
 			"type": {
 				Type:     schema.TypeString,
-				Required: true,
 				ForceNew: true,
+				Optional: true,
 			},
 			"min": {
 				Type:     schema.TypeFloat,
