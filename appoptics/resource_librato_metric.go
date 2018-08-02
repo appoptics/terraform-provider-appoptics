@@ -24,6 +24,10 @@ func resourceAppOpticsMetric() *schema.Resource {
 				Required: true,
 				ForceNew: false,
 			},
+			"type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"display_name": {
 				Type:     schema.TypeString,
 				Optional: true,
