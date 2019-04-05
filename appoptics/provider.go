@@ -1,11 +1,11 @@
 package appoptics
 
 import (
-	"github.com/akahn/go-librato/librato"
+	"os"
+
+	"github.com/appoptics/appoptics-api-go"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"net/url"
-	"os"
 )
 
 // Provider returns a schema.Provider for Librato.
@@ -33,12 +33,13 @@ func Provider() terraform.ResourceProvider {
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	var url *url.URL
+	var url string
 	if appOpticsUrl := os.Getenv("APPOPTICS_URL"); appOpticsUrl != "" {
-		url, _ = url.Parse(appOpticsUrl)
+		url = appOpticsUrl
 	} else {
-		url, _ = url.Parse("https://api.appoptics.com/v1/")
+		url = "https://api.appoptics.com/v1/"
 	}
-	client := librato.NewClientWithBaseURL(url, "token", d.Get("token").(string))
+
+	client := appoptics.NewClient(d.Get("token").(string), appoptics.BaseURLClientOption(url))
 	return client, nil
 }
