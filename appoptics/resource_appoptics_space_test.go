@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAppOpticsSpace_Basic(t *testing.T) {
+func TestAccAppOpticsSpaceBasic(t *testing.T) {
 	var space appoptics.Space
 	name := acctest.RandString(10)
 
