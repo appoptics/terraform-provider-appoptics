@@ -5,26 +5,26 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/akahn/go-librato/librato"
+	"github.com/appoptics/appoptics-api-go"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccLibratoSpace_Basic(t *testing.T) {
-	var space librato.Space
+func TestAccAppOpticsSpace_Basic(t *testing.T) {
+	var space appoptics.Space
 	name := acctest.RandString(10)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckLibratoSpaceDestroy,
+		CheckDestroy: testAccCheckAppOpticsSpaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckLibratoSpaceConfig_basic(name),
+				Config: testAccCheckAppOpticsSpaceConfigBasic(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLibratoSpaceExists("appoptics_space.foobar", &space),
-					testAccCheckLibratoSpaceAttributes(&space, name),
+					testAccCheckAppOpticsSpaceExists("appoptics_space.foobar", &space),
+					testAccCheckAppOpticsSpaceAttributes(&space, name),
 					resource.TestCheckResourceAttr(
 						"appoptics_space.foobar", "name", name),
 				),
@@ -33,21 +33,20 @@ func TestAccLibratoSpace_Basic(t *testing.T) {
 	})
 }
 
-func testAccCheckLibratoSpaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*librato.Client)
+func testAccCheckAppOpticsSpaceDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*appoptics.Client)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "appoptics_space" {
 			continue
 		}
 
-		id, err := strconv.ParseUint(rs.Primary.ID, 10, 0)
+		id, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("ID not a number")
 		}
 
-		_, _, err = client.Spaces.Get(uint(id))
-
+		_, err = client.SpacesService().Retrieve(id)
 		if err == nil {
 			return fmt.Errorf("Space still exists")
 		}
@@ -56,18 +55,18 @@ func testAccCheckLibratoSpaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckLibratoSpaceAttributes(space *librato.Space, name string) resource.TestCheckFunc {
+func testAccCheckAppOpticsSpaceAttributes(space *appoptics.Space, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if space.Name == nil || *space.Name != name {
-			return fmt.Errorf("Bad name: %s", *space.Name)
+		if space.Name == "" || space.Name != name {
+			return fmt.Errorf("Bad name: %s", space.Name)
 		}
 
 		return nil
 	}
 }
 
-func testAccCheckLibratoSpaceExists(n string, space *librato.Space) resource.TestCheckFunc {
+func testAccCheckAppOpticsSpaceExists(n string, space *appoptics.Space) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
@@ -79,30 +78,28 @@ func testAccCheckLibratoSpaceExists(n string, space *librato.Space) resource.Tes
 			return fmt.Errorf("No Space ID is set")
 		}
 
-		client := testAccProvider.Meta().(*librato.Client)
+		client := testAccProvider.Meta().(*appoptics.Client)
 
-		id, err := strconv.ParseUint(rs.Primary.ID, 10, 0)
+		id, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("ID not a number")
 		}
 
-		foundSpace, _, err := client.Spaces.Get(uint(id))
+		foundSpace, err := client.SpacesService().Retrieve(id)
 
 		if err != nil {
 			return err
 		}
 
-		if foundSpace.ID == nil || *foundSpace.ID != uint(id) {
+		if foundSpace.ID != id {
 			return fmt.Errorf("Space not found")
 		}
-
-		*space = *foundSpace
 
 		return nil
 	}
 }
 
-func testAccCheckLibratoSpaceConfig_basic(name string) string {
+func testAccCheckAppOpticsSpaceConfigBasic(name string) string {
 	return fmt.Sprintf(`
 resource "appoptics_space" "foobar" {
     name = "%s"
