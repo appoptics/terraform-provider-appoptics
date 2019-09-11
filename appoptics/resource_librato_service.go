@@ -21,7 +21,7 @@ func resourceAppOpticsService() *schema.Resource {
 		Delete: resourceAppOpticsServiceDelete,
 
 		Schema: map[string]*schema.Schema{
-			"id": {
+			"service_id": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
@@ -141,7 +141,7 @@ func resourceAppOpticsServiceRead(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAppOpticsServiceReadResult(d *schema.ResourceData, service *librato.Service) error {
 	d.SetId(strconv.FormatUint(uint64(*service.ID), 10))
-	d.Set("id", *service.ID)
+	d.Set("service_id", *service.ID)
 	d.Set("type", *service.Type)
 	d.Set("title", *service.Title)
 	settings, _ := resourceAppOpticsServicesFlatten(service.Settings)

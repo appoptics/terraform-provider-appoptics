@@ -24,10 +24,6 @@ func resourceAppOpticsSpace() *schema.Resource {
 				Required: true,
 				ForceNew: false,
 			},
-			"id": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -53,6 +49,7 @@ func resourceAppOpticsSpaceCreate(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	})
 
+	d.SetId(strconv.Itoa(space.ID))
 	return resourceAppOpticsSpaceReadResult(d, space)
 }
 
@@ -77,9 +74,6 @@ func resourceAppOpticsSpaceRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceAppOpticsSpaceReadResult(d *schema.ResourceData, space *appoptics.Space) error {
-	if err := d.Set("id", space.ID); err != nil {
-		return err
-	}
 	if err := d.Set("name", space.Name); err != nil {
 		return err
 	}
