@@ -34,8 +34,8 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	var url string
-	if appOpticsUrl := os.Getenv("APPOPTICS_URL"); appOpticsUrl != "" {
-		url = appOpticsUrl
+	if appOpticsURL := os.Getenv("APPOPTICS_URL"); appOpticsURL != "" {
+		url = appOpticsURL
 	} else {
 		url = "https://api.appoptics.com/v1/"
 	}

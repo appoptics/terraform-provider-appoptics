@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAppOpticsService_Basic(t *testing.T) {
+func TestAccAppOpticsServiceBasic(t *testing.T) {
 	var service librato.Service
 
 	resource.Test(t, resource.TestCase{
@@ -19,7 +19,7 @@ func TestAccAppOpticsService_Basic(t *testing.T) {
 		CheckDestroy: testAccCheckAppOpticsServiceDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccCheckAppOpticsServiceConfig_basic,
+				Config: testAccCheckAppOpticsServiceConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsServiceExists("appoptics_service.foobar", &service),
 					testAccCheckAppOpticsServiceTitle(&service, "Foo Bar"),
@@ -40,7 +40,7 @@ func TestAccAppOpticsService_Updated(t *testing.T) {
 		CheckDestroy: testAccCheckAppOpticsServiceDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccCheckAppOpticsServiceConfig_basic,
+				Config: testAccCheckAppOpticsServiceConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsServiceExists("appoptics_service.foobar", &service),
 					testAccCheckAppOpticsServiceTitle(&service, "Foo Bar"),
@@ -49,7 +49,7 @@ func TestAccAppOpticsService_Updated(t *testing.T) {
 				),
 			},
 			resource.TestStep{
-				Config: testAccCheckAppOpticsServiceConfig_new_value,
+				Config: testAccCheckAppOpticsServiceConfigNewValue,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsServiceExists("appoptics_service.foobar", &service),
 					testAccCheckAppOpticsServiceTitle(&service, "Bar Baz"),
@@ -130,7 +130,7 @@ func testAccCheckAppOpticsServiceExists(n string, service *librato.Service) reso
 	}
 }
 
-const testAccCheckAppOpticsServiceConfig_basic = `
+const testAccCheckAppOpticsServiceConfigBasic = `
 resource "appoptics_service" "foobar" {
     title = "Foo Bar"
     type = "mail"
@@ -141,7 +141,7 @@ resource "appoptics_service" "foobar" {
 EOF
 }`
 
-const testAccCheckAppOpticsServiceConfig_new_value = `
+const testAccCheckAppOpticsServiceConfigNewValue = `
 resource "appoptics_service" "foobar" {
     title = "Bar Baz"
     type = "mail"

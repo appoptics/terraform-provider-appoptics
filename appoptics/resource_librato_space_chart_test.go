@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAppOpticsSpaceChart_Basic(t *testing.T) {
+func TestAccAppOpticsSpaceChartBasic(t *testing.T) {
 	var spaceChart librato.SpaceChart
 
 	resource.Test(t, resource.TestCase{
@@ -19,7 +19,7 @@ func TestAccAppOpticsSpaceChart_Basic(t *testing.T) {
 		CheckDestroy: testAccCheckAppOpticsSpaceChartDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccCheckAppOpticsSpaceChartConfig_basic,
+				Config: testAccCheckAppOpticsSpaceChartConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsSpaceChartExists("appoptics_space_chart.foobar", &spaceChart),
 					testAccCheckAppOpticsSpaceChartName(&spaceChart, "Foo Bar"),
@@ -61,7 +61,7 @@ func TestAccAppOpticsSpaceChart_Updated(t *testing.T) {
 		CheckDestroy: testAccCheckAppOpticsSpaceChartDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccCheckAppOpticsSpaceChartConfig_basic,
+				Config: testAccCheckAppOpticsSpaceChartConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsSpaceChartExists("appoptics_space_chart.foobar", &spaceChart),
 					testAccCheckAppOpticsSpaceChartName(&spaceChart, "Foo Bar"),
@@ -70,7 +70,7 @@ func TestAccAppOpticsSpaceChart_Updated(t *testing.T) {
 				),
 			},
 			resource.TestStep{
-				Config: testAccCheckAppOpticsSpaceChartConfig_new_value,
+				Config: testAccCheckAppOpticsSpaceChartConfigNewValue,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsSpaceChartExists("appoptics_space_chart.foobar", &spaceChart),
 					testAccCheckAppOpticsSpaceChartName(&spaceChart, "Bar Baz"),
@@ -161,7 +161,7 @@ func testAccCheckAppOpticsSpaceChartExists(n string, spaceChart *librato.SpaceCh
 	}
 }
 
-const testAccCheckAppOpticsSpaceChartConfig_basic = `
+const testAccCheckAppOpticsSpaceChartConfigBasic = `
 resource "appoptics_space" "foobar" {
     name = "Foo Bar"
 }
@@ -172,7 +172,7 @@ resource "appoptics_space_chart" "foobar" {
     type = "line"
 }`
 
-const testAccCheckAppOpticsSpaceChartConfig_new_value = `
+const testAccCheckAppOpticsSpaceChartConfigNewValue = `
 resource "appoptics_space" "foobar" {
     name = "Foo Bar"
 }
@@ -183,7 +183,7 @@ resource "appoptics_space_chart" "foobar" {
     type = "line"
 }`
 
-const testAccCheckAppOpticsSpaceChartConfig_full = `
+const testAccCheckAppOpticsSpaceChartConfigFull = `
 resource "appoptics_space" "foobar" {
     name = "Foo Bar"
 }
