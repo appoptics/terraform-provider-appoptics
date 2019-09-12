@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/akahn/go-librato/librato"
+	"github.com/appoptics/appoptics-api-go"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -54,15 +54,32 @@ func resourceAppOpticsAlert() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 						"metric_name": {
 							Type:     schema.TypeString,
-							Required: true,
-						},
-						"source": {
-							Type:     schema.TypeString,
 							Optional: true,
+						},
+						"tag": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"grouped": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"values": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+								},
+							},
 						},
 						"detect_reset": {
 							Type:     schema.TypeBool,
@@ -85,17 +102,8 @@ func resourceAppOpticsAlert() *schema.Resource {
 				Set: resourceAppOpticsAlertConditionsHash,
 			},
 			"attributes": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeMap,
 				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"runbook_url": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
-				},
 			},
 		},
 	}
@@ -107,9 +115,9 @@ func resourceAppOpticsAlertConditionsHash(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["metric_name"].(string)))
 
-	source, present := m["source"]
-	if present {
-		buf.WriteString(fmt.Sprintf("%s-", source.(string)))
+	tags, present := m["tag"].([]interface{})
+	if present && len(tags) > 0 {
+		buf.WriteString(fmt.Sprintf("%d-", tagsHash(tags)))
 	}
 
 	detectReset, present := m["detect_reset"]
@@ -135,57 +143,92 @@ func resourceAppOpticsAlertConditionsHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+func tagsHash(tags []interface{}) int {
+	var buf bytes.Buffer
+	for _, v := range tags {
+		m := v.(map[string]interface{})
+		buf.WriteString(fmt.Sprintf("%s-", m["name"]))
+		buf.WriteString(fmt.Sprintf("%s-", m["grouped"]))
+		buf.WriteString(fmt.Sprintf("%d-", tagsValuesHash(m["values"].([]interface{}))))
+	}
 
-	alert := librato.Alert{
-		Name: librato.String(d.Get("name").(string)),
+	return hashcode.String(buf.String())
+}
+
+func tagsValuesHash(s []interface{}) int {
+	var buf bytes.Buffer
+	for _, v := range s {
+		buf.WriteString(fmt.Sprintf("%s-", v))
+	}
+
+	return hashcode.String(buf.String())
+}
+
+func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*appoptics.Client)
+
+	alert := appoptics.Alert{
+		Name: d.Get("name").(string),
 	}
 	if v, ok := d.GetOk("description"); ok {
-		alert.Description = librato.String(v.(string))
+		alert.Description = v.(string)
 	}
 	// GetOK returns not OK for false boolean values, use Get
-	alert.Active = librato.Bool(d.Get("active").(bool))
+	alert.Active = d.Get("active").(bool)
 	if v, ok := d.GetOk("rearm_seconds"); ok {
-		alert.RearmSeconds = librato.Uint(uint(v.(int)))
+		alert.RearmSeconds = v.(int)
 	}
 	if v, ok := d.GetOk("services"); ok {
 		vs := v.(*schema.Set)
-		services := make([]*string, vs.Len())
+		services := make([]*appoptics.Service, vs.Len())
 		for i, serviceData := range vs.List() {
-			services[i] = librato.String(serviceData.(string))
+			services[i] = serviceData.(*appoptics.Service)
 		}
 		alert.Services = services
 	}
 	if v, ok := d.GetOk("condition"); ok {
 		vs := v.(*schema.Set)
-		conditions := make([]librato.AlertCondition, vs.Len())
+		conditions := make([]*appoptics.AlertCondition, vs.Len())
+
 		for i, conditionDataM := range vs.List() {
 			conditionData := conditionDataM.(map[string]interface{})
-			var condition librato.AlertCondition
+			condition := appoptics.AlertCondition{}
+
 			if v, ok := conditionData["type"].(string); ok && v != "" {
-				condition.Type = librato.String(v)
+				condition.Type = v
 			}
 			if v, ok := conditionData["threshold"].(float64); ok && !math.IsNaN(v) {
-				condition.Threshold = librato.Float(v)
+				condition.Threshold = v
 			}
 			if v, ok := conditionData["metric_name"].(string); ok && v != "" {
-				condition.MetricName = librato.String(v)
+				condition.MetricName = v
 			}
-			if v, ok := conditionData["source"].(string); ok && v != "" {
-				condition.Source = librato.String(v)
-			}
-			if v, ok := conditionData["detect_reset"].(bool); ok {
-				condition.DetectReset = librato.Bool(v)
+			if v, ok := conditionData["tag"].([]interface{}); ok {
+				tags := make([]*appoptics.Tag, len(v))
+				for i, tagData := range v {
+					tag := appoptics.Tag{}
+					tag.Grouped = tagData.(map[string]interface{})["grouped"].(bool)
+					tag.Name = tagData.(map[string]interface{})["name"].(string)
+					values := tagData.(map[string]interface{})["values"].([]interface{})
+					valuesInStrings := make([]string, len(values))
+					for i, v := range values {
+						valuesInStrings[i] = v.(string)
+					}
+					tag.Values = valuesInStrings
+					tags[i] = &tag
+				}
+
+				condition.Tags = tags
 			}
 			if v, ok := conditionData["duration"].(int); ok {
-				condition.Duration = librato.Uint(uint(v))
+				condition.Duration = v
 			}
 			if v, ok := conditionData["summary_function"].(string); ok && v != "" {
-				condition.SummaryFunction = librato.String(v)
+				condition.SummaryFunction = v
 			}
-			conditions[i] = condition
+			conditions[i] = &condition
 		}
+
 		alert.Conditions = conditions
 	}
 	if v, ok := d.GetOk("attributes"); ok {
@@ -196,26 +239,22 @@ func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) erro
 			if attributeData[0] == nil {
 				return fmt.Errorf("No attributes found in attributes block")
 			}
-			attributeDataMap := attributeData[0].(map[string]interface{})
-			attributes := new(librato.AlertAttributes)
-			if v, ok := attributeDataMap["runbook_url"].(string); ok && v != "" {
-				attributes.RunbookURL = librato.String(v)
-			}
-			alert.Attributes = attributes
+			// The only attribute here should be the runbook_url
+			alert.Attributes = attributeData[0].(map[string]interface{})
 		}
 	}
 
-	alertResult, _, err := client.Alerts.Create(&alert)
+	alertResult, err := client.AlertsService().Create(&alert)
 
 	if err != nil {
-		return fmt.Errorf("Error creating AppOptics alert %s: %s", *alert.Name, err)
+		return fmt.Errorf("Error creating AppOptics alert %s: %s", alert.Name, err)
 	}
 	log.Printf("[INFO] Created AppOptics alert: %s", *alertResult)
 
 	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
-		_, _, err := client.Alerts.Get(*alertResult.ID)
+		_, err := client.AlertsService().Retrieve(alertResult.ID)
 		if err != nil {
-			if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
+			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
@@ -223,25 +262,25 @@ func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	})
 	if retryErr != nil {
-		return fmt.Errorf("Error creating librato alert: %s", err)
+		return fmt.Errorf("Error creating AppOptics alert: %s", err)
 	}
 
-	d.SetId(strconv.FormatUint(uint64(*alertResult.ID), 10))
+	d.SetId(strconv.FormatUint(uint64(alertResult.ID), 10))
 
 	return resourceAppOpticsAlertRead(d, meta)
 }
 
 func resourceAppOpticsAlertRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 	id, err := strconv.ParseUint(d.Id(), 10, 0)
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[INFO] Reading AppOptics Alert: %d", id)
-	alert, _, err := client.Alerts.Get(uint(id))
+	alert, err := client.AlertsService().Retrieve(int(id))
 	if err != nil {
-		if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
+		if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 			d.SetId("")
 			return nil
 		}
@@ -251,173 +290,179 @@ func resourceAppOpticsAlertRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", alert.Name)
 
-	if alert.Description != nil {
-		if err := d.Set("description", alert.Description); err != nil {
-			return err
-		}
+	if err := d.Set("description", alert.Description); err != nil {
+		return err
 	}
-	if alert.Active != nil {
-		if err := d.Set("active", alert.Active); err != nil {
-			return err
-		}
+
+	if err := d.Set("active", alert.Active); err != nil {
+		return err
 	}
-	if alert.RearmSeconds != nil {
-		if err := d.Set("rearm_seconds", alert.RearmSeconds); err != nil {
-			return err
-		}
+
+	if err := d.Set("rearm_seconds", alert.RearmSeconds); err != nil {
+		return err
 	}
 
 	// Since the following aren't simple terraform types (TypeList), it's best to
 	// catch the error returned from the d.Set() function, and handle accordingly.
-	services := resourceAppOpticsAlertServicesGather(d, alert.Services.([]interface{}))
+	services := flattenServices(d, alert.Services)
+	// TODO: does this need `schema.NewSet(...)`?
 	if err := d.Set("services", schema.NewSet(schema.HashString, services)); err != nil {
 		return err
 	}
 
-	conditions := resourceAppOpticsAlertConditionsGather(d, alert.Conditions)
-	if err := d.Set("condition", schema.NewSet(resourceAppOpticsAlertConditionsHash, conditions)); err != nil {
+	conditions := flattenCondition(d, alert.Conditions)
+	if err := d.Set("condition", conditions); err != nil {
 		return err
 	}
 
-	attributes := resourceAppOpticsAlertAttributesGather(d, alert.Attributes)
-	if err := d.Set("attributes", attributes); err != nil {
+	if err := d.Set("attributes", alert.Attributes); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func resourceAppOpticsAlertServicesGather(d *schema.ResourceData, services []interface{}) []interface{} {
+func flattenServices(d *schema.ResourceData, services []*appoptics.Service) []interface{} {
 	retServices := make([]interface{}, 0, len(services))
 
-	for _, s := range services {
-		serviceData := s.(map[string]interface{})
-		// ID field is returned as float64, for whatever reason
-		retServices = append(retServices, fmt.Sprintf("%.f", serviceData["id"]))
+	for _, serviceData := range services {
+		retServices = append(retServices, fmt.Sprintf("%.f", serviceData.ID))
 	}
 
 	return retServices
 }
 
-func resourceAppOpticsAlertConditionsGather(d *schema.ResourceData, conditions []librato.AlertCondition) []interface{} {
+func flattenCondition(d *schema.ResourceData, conditions []*appoptics.AlertCondition) []interface{} {
 	retConditions := make([]interface{}, 0, len(conditions))
 	for _, c := range conditions {
 		condition := make(map[string]interface{})
-		if c.Type != nil {
-			condition["type"] = *c.Type
-		}
-		if c.Threshold != nil {
-			condition["threshold"] = *c.Threshold
-		}
-		if c.MetricName != nil {
-			condition["metric_name"] = *c.MetricName
-		}
-		if c.Source != nil {
-			condition["source"] = *c.Source
-		}
-		if c.DetectReset != nil {
-			condition["detect_reset"] = *c.MetricName
-		}
-		if c.Duration != nil {
-			condition["duration"] = int(*c.Duration)
-		}
-		if c.SummaryFunction != nil {
-			condition["summary_function"] = *c.SummaryFunction
-		}
+		condition["type"] = c.Type
+		condition["threshold"] = c.Threshold
+		condition["metric_name"] = c.MetricName
+		condition["tag"] = flattenConditionTags(c.Tags)
+		// TODO: once we upgrade the appoptics-api-go dependency,
+		// we need to add a `condition["detect_reset"] = c.DetectReset` below
+		// SEE: https://github.com/appoptics/terraform-provider-appoptics/issues/12
+		// condition["detect_reset"] = c.DetectReset
+		condition["duration"] = int(c.Duration)
+		condition["summary_function"] = c.SummaryFunction
 		retConditions = append(retConditions, condition)
 	}
 
 	return retConditions
 }
 
-// Flattens an attributes hash into something that flatmap.Flatten() can handle
-func resourceAppOpticsAlertAttributesGather(d *schema.ResourceData, attributes *librato.AlertAttributes) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, 1)
-
-	if attributes != nil {
-		retAttributes := make(map[string]interface{})
-		if attributes.RunbookURL != nil {
-			retAttributes["runbook_url"] = *attributes.RunbookURL
+func flattenConditionTags(in []*appoptics.Tag) []interface{} {
+	var out = make([]interface{}, 0, len(in))
+	for _, v := range in {
+		m := make(map[string]interface{})
+		m["name"] = v.Name
+		m["grouped"] = v.Grouped
+		if len(v.Values) > 0 {
+			m["values"] = flattenConditionTagsValues(v.Values)
 		}
-		result = append(result, retAttributes)
+		out = append(out, m)
 	}
 
-	return result
+	return out
+}
+
+func flattenConditionTagsValues(in []string) []interface{} {
+	vs := make([]interface{}, 0, len(in))
+	for _, v := range in {
+		vs = append(vs, v)
+	}
+	return vs
 }
 
 func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 
-	id, err := strconv.ParseUint(d.Id(), 10, 0)
+	id, err := strconv.ParseInt(d.Id(), 10, 0)
 	if err != nil {
 		return err
 	}
 
-	alert := new(librato.Alert)
-	alert.Name = librato.String(d.Get("name").(string))
+	alert := new(appoptics.Alert)
+	alert.ID = int(id)
+	alert.Name = d.Get("name").(string)
 
 	if d.HasChange("description") {
-		alert.Description = librato.String(d.Get("description").(string))
+		alert.Description = d.Get("description").(string)
 	}
 	if d.HasChange("active") {
-		alert.Active = librato.Bool(d.Get("active").(bool))
+		alert.Active = d.Get("active").(bool)
 	}
 	if d.HasChange("rearm_seconds") {
-		alert.RearmSeconds = librato.Uint(uint(d.Get("rearm_seconds").(int)))
+		alert.RearmSeconds = d.Get("rearm_seconds").(int)
 	}
 	if d.HasChange("services") {
 		vs := d.Get("services").(*schema.Set)
-		services := make([]*string, vs.Len())
+		services := make([]*appoptics.Service, vs.Len())
 		for i, serviceData := range vs.List() {
-			services[i] = librato.String(serviceData.(string))
+			services[i] = serviceData.(*appoptics.Service)
 		}
 		alert.Services = services
 	}
 
+	// We always have to send the conditions hash, from the API docs:
+	//
+	// NOTE: This method requires the conditions hash.
+	// If conditions is not included in the payload, the alert conditions will be removed.
 	vs := d.Get("condition").(*schema.Set)
-	conditions := make([]librato.AlertCondition, vs.Len())
+	conditions := make([]*appoptics.AlertCondition, vs.Len())
+
 	for i, conditionDataM := range vs.List() {
 		conditionData := conditionDataM.(map[string]interface{})
-		var condition librato.AlertCondition
+		condition := appoptics.AlertCondition{}
+
 		if v, ok := conditionData["type"].(string); ok && v != "" {
-			condition.Type = librato.String(v)
+			condition.Type = v
 		}
 		if v, ok := conditionData["threshold"].(float64); ok && !math.IsNaN(v) {
-			condition.Threshold = librato.Float(v)
+			condition.Threshold = v
 		}
 		if v, ok := conditionData["metric_name"].(string); ok && v != "" {
-			condition.MetricName = librato.String(v)
+			condition.MetricName = v
 		}
-		if v, ok := conditionData["source"].(string); ok && v != "" {
-			condition.Source = librato.String(v)
-		}
-		if v, ok := conditionData["detect_reset"].(bool); ok {
-			condition.DetectReset = librato.Bool(v)
+		if v, ok := conditionData["tag"].([]interface{}); ok {
+			tags := make([]*appoptics.Tag, len(v))
+			for i, tagData := range v {
+				tag := appoptics.Tag{}
+				tag.Grouped = tagData.(map[string]interface{})["grouped"].(bool)
+				tag.Name = tagData.(map[string]interface{})["name"].(string)
+				values := tagData.(map[string]interface{})["values"].([]interface{})
+				valuesInStrings := make([]string, len(values))
+				for i, v := range values {
+					valuesInStrings[i] = v.(string)
+				}
+				tag.Values = valuesInStrings
+				tags[i] = &tag
+			}
+
+			condition.Tags = tags
 		}
 		if v, ok := conditionData["duration"].(int); ok {
-			condition.Duration = librato.Uint(uint(v))
+			condition.Duration = v
 		}
 		if v, ok := conditionData["summary_function"].(string); ok && v != "" {
-			condition.SummaryFunction = librato.String(v)
+			condition.SummaryFunction = v
 		}
-		conditions[i] = condition
-		alert.Conditions = conditions
+		conditions[i] = &condition
 	}
+	alert.Conditions = conditions
+
 	if d.HasChange("attributes") {
 		attributeData := d.Get("attributes").([]interface{})
 		if attributeData[0] == nil {
 			return fmt.Errorf("No attributes found in attributes block")
 		}
-		attributeDataMap := attributeData[0].(map[string]interface{})
-		attributes := new(librato.AlertAttributes)
-		if v, ok := attributeDataMap["runbook_url"].(string); ok && v != "" {
-			attributes.RunbookURL = librato.String(v)
-		}
-		alert.Attributes = attributes
+
+		alert.Attributes = attributeData[0].(map[string]interface{})
 	}
 
 	log.Printf("[INFO] Updating AppOptics alert: %s", alert)
-	_, updErr := client.Alerts.Update(uint(id), alert)
+	updErr := client.AlertsService().Update(alert)
 	if updErr != nil {
 		return fmt.Errorf("Error updating AppOptics alert: %s", updErr)
 	}
@@ -433,7 +478,7 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 		ContinuousTargetOccurence: 5,
 		Refresh: func() (interface{}, string, error) {
 			log.Printf("[DEBUG] Checking if AppOptics Alert %d was updated yet", id)
-			changedAlert, _, getErr := client.Alerts.Get(uint(id))
+			changedAlert, getErr := client.AlertsService().Retrieve(int(id))
 			if getErr != nil {
 				return changedAlert, "", getErr
 			}
@@ -450,22 +495,22 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceAppOpticsAlertDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 	id, err := strconv.ParseUint(d.Id(), 10, 0)
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[INFO] Deleting Alert: %d", id)
-	_, err = client.Alerts.Delete(uint(id))
+	err = client.AlertsService().Delete(int(id))
 	if err != nil {
 		return fmt.Errorf("Error deleting Alert: %s", err)
 	}
 
 	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
-		_, _, err := client.Alerts.Get(uint(id))
+		_, err := client.AlertsService().Retrieve(int(id))
 		if err != nil {
-			if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
+			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 				return nil
 			}
 			return resource.NonRetryableError(err)
