@@ -5,14 +5,14 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/akahn/go-librato/librato"
+	"github.com/appoptics/appoptics-api-go"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAppOpticsAlert_Minimal(t *testing.T) {
-	var alert librato.Alert
+func TestAccAppOpticsAlertMinimal(t *testing.T) {
+	var alert appoptics.Alert
 	name := acctest.RandString(10)
 
 	resource.Test(t, resource.TestCase{
@@ -21,7 +21,7 @@ func TestAccAppOpticsAlert_Minimal(t *testing.T) {
 		CheckDestroy: testAccCheckAppOpticsAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAppOpticsAlertConfig_minimal(name),
+				Config: testAccCheckAppOpticsAlertConfigMinimal(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
 					testAccCheckAppOpticsAlertName(&alert, name),
@@ -33,8 +33,8 @@ func TestAccAppOpticsAlert_Minimal(t *testing.T) {
 	})
 }
 
-func TestAccAppOpticsAlert_Basic(t *testing.T) {
-	var alert librato.Alert
+func TestAccAppOpticsAlertBasic(t *testing.T) {
+	var alert appoptics.Alert
 	name := acctest.RandString(10)
 
 	resource.Test(t, resource.TestCase{
@@ -43,7 +43,7 @@ func TestAccAppOpticsAlert_Basic(t *testing.T) {
 		CheckDestroy: testAccCheckAppOpticsAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAppOpticsAlertConfig_basic(name),
+				Config: testAccCheckAppOpticsAlertConfigBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
 					testAccCheckAppOpticsAlertName(&alert, name),
@@ -56,8 +56,8 @@ func TestAccAppOpticsAlert_Basic(t *testing.T) {
 	})
 }
 
-func TestAccAppOpticsAlert_Full(t *testing.T) {
-	var alert librato.Alert
+func TestAccAppOpticsAlertFull(t *testing.T) {
+	var alert appoptics.Alert
 	name := acctest.RandString(10)
 
 	resource.Test(t, resource.TestCase{
@@ -66,7 +66,7 @@ func TestAccAppOpticsAlert_Full(t *testing.T) {
 		CheckDestroy: testAccCheckAppOpticsAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAppOpticsAlertConfig_full(name),
+				Config: testAccCheckAppOpticsAlertConfigFull(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
 					testAccCheckAppOpticsAlertName(&alert, name),
@@ -74,7 +74,7 @@ func TestAccAppOpticsAlert_Full(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "name", name),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.836525194.metric_name", "librato.cpu.percent.idle"),
+						"appoptics_alert.foobar", "condition.836525194.metric_name", "appoptics.cpu.percent.idle"),
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "condition.836525194.type", "above"),
 					resource.TestCheckResourceAttr(
@@ -87,8 +87,8 @@ func TestAccAppOpticsAlert_Full(t *testing.T) {
 	})
 }
 
-func TestAccAppOpticsAlert_Updated(t *testing.T) {
-	var alert librato.Alert
+func TestAccAppOpticsAlertUpdated(t *testing.T) {
+	var alert appoptics.Alert
 	name := acctest.RandString(10)
 
 	resource.Test(t, resource.TestCase{
@@ -97,7 +97,7 @@ func TestAccAppOpticsAlert_Updated(t *testing.T) {
 		CheckDestroy: testAccCheckAppOpticsAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAppOpticsAlertConfig_basic(name),
+				Config: testAccCheckAppOpticsAlertConfigBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
 					testAccCheckAppOpticsAlertDescription(&alert, "A Test Alert"),
@@ -106,7 +106,7 @@ func TestAccAppOpticsAlert_Updated(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckAppOpticsAlertConfig_new_value(name),
+				Config: testAccCheckAppOpticsAlertConfigNewValue(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
 					testAccCheckAppOpticsAlertDescription(&alert, "A modified Test Alert"),
@@ -118,8 +118,8 @@ func TestAccAppOpticsAlert_Updated(t *testing.T) {
 	})
 }
 
-func TestAccAppOpticsAlert_Rename(t *testing.T) {
-	var alert librato.Alert
+func TestAccAppOpticsAlertRename(t *testing.T) {
+	var alert appoptics.Alert
 	name := acctest.RandString(10)
 	newName := acctest.RandString(10)
 
@@ -129,7 +129,7 @@ func TestAccAppOpticsAlert_Rename(t *testing.T) {
 		CheckDestroy: testAccCheckAppOpticsAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAppOpticsAlertConfig_basic(name),
+				Config: testAccCheckAppOpticsAlertConfigBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
 					resource.TestCheckResourceAttr(
@@ -137,7 +137,7 @@ func TestAccAppOpticsAlert_Rename(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckAppOpticsAlertConfig_basic(newName),
+				Config: testAccCheckAppOpticsAlertConfigBasic(newName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
 					resource.TestCheckResourceAttr(
@@ -148,8 +148,8 @@ func TestAccAppOpticsAlert_Rename(t *testing.T) {
 	})
 }
 
-func TestAccAppOpticsAlert_FullUpdate(t *testing.T) {
-	var alert librato.Alert
+func TestAccAppOpticsAlertFullUpdate(t *testing.T) {
+	var alert appoptics.Alert
 	name := acctest.RandString(10)
 
 	resource.Test(t, resource.TestCase{
@@ -158,7 +158,7 @@ func TestAccAppOpticsAlert_FullUpdate(t *testing.T) {
 		CheckDestroy: testAccCheckAppOpticsAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAppOpticsAlertConfig_full_update(name),
+				Config: testAccCheckAppOpticsAlertConfigFullUpdate(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
 					testAccCheckAppOpticsAlertName(&alert, name),
@@ -168,7 +168,7 @@ func TestAccAppOpticsAlert_FullUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "rearm_seconds", "1200"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.2524844643.metric_name", "librato.cpu.percent.idle"),
+						"appoptics_alert.foobar", "condition.2524844643.metric_name", "appoptics.cpu.percent.idle"),
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "condition.2524844643.type", "above"),
 					resource.TestCheckResourceAttr(
@@ -182,7 +182,7 @@ func TestAccAppOpticsAlert_FullUpdate(t *testing.T) {
 }
 
 func testAccCheckAppOpticsAlertDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*librato.Client)
+	client := testAccProvider.Meta().(*appoptics.Client)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "appoptics_alert" {
@@ -194,7 +194,7 @@ func testAccCheckAppOpticsAlertDestroy(s *terraform.State) error {
 			return fmt.Errorf("ID not a number")
 		}
 
-		_, _, err = client.Alerts.Get(uint(id))
+		_, err = client.AlertsService().Retrieve(int(id))
 
 		if err == nil {
 			return fmt.Errorf("Alert still exists")
@@ -204,29 +204,29 @@ func testAccCheckAppOpticsAlertDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAppOpticsAlertName(alert *librato.Alert, name string) resource.TestCheckFunc {
+func testAccCheckAppOpticsAlertName(alert *appoptics.Alert, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if alert.Name == nil || *alert.Name != name {
-			return fmt.Errorf("Bad name: %s", *alert.Name)
+		if alert.Name != name {
+			return fmt.Errorf("Bad name: %s", alert.Name)
 		}
 
 		return nil
 	}
 }
 
-func testAccCheckAppOpticsAlertDescription(alert *librato.Alert, description string) resource.TestCheckFunc {
+func testAccCheckAppOpticsAlertDescription(alert *appoptics.Alert, description string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if alert.Description == nil || *alert.Description != description {
-			return fmt.Errorf("Bad description: %s", *alert.Description)
+		if alert.Description != description {
+			return fmt.Errorf("Bad description: %s", alert.Description)
 		}
 
 		return nil
 	}
 }
 
-func testAccCheckAppOpticsAlertExists(n string, alert *librato.Alert) resource.TestCheckFunc {
+func testAccCheckAppOpticsAlertExists(n string, alert *appoptics.Alert) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
@@ -238,20 +238,20 @@ func testAccCheckAppOpticsAlertExists(n string, alert *librato.Alert) resource.T
 			return fmt.Errorf("No Alert ID is set")
 		}
 
-		client := testAccProvider.Meta().(*librato.Client)
+		client := testAccProvider.Meta().(*appoptics.Client)
 
 		id, err := strconv.ParseUint(rs.Primary.ID, 10, 0)
 		if err != nil {
 			return fmt.Errorf("ID not a number")
 		}
 
-		foundAlert, _, err := client.Alerts.Get(uint(id))
+		foundAlert, err := client.AlertsService().Retrieve(int(id))
 
 		if err != nil {
 			return err
 		}
 
-		if foundAlert.ID == nil || *foundAlert.ID != uint(id) {
+		if foundAlert.ID == 0 {
 			return fmt.Errorf("Alert not found")
 		}
 
@@ -261,14 +261,14 @@ func testAccCheckAppOpticsAlertExists(n string, alert *librato.Alert) resource.T
 	}
 }
 
-func testAccCheckAppOpticsAlertConfig_minimal(name string) string {
+func testAccCheckAppOpticsAlertConfigMinimal(name string) string {
 	return fmt.Sprintf(`
 resource "appoptics_alert" "foobar" {
     name = "%s"
 }`, name)
 }
 
-func testAccCheckAppOpticsAlertConfig_basic(name string) string {
+func testAccCheckAppOpticsAlertConfigBasic(name string) string {
 	return fmt.Sprintf(`
 resource "appoptics_alert" "foobar" {
     name = "%s"
@@ -276,7 +276,7 @@ resource "appoptics_alert" "foobar" {
 }`, name)
 }
 
-func testAccCheckAppOpticsAlertConfig_new_value(name string) string {
+func testAccCheckAppOpticsAlertConfigNewValue(name string) string {
 	return fmt.Sprintf(`
 resource "appoptics_alert" "foobar" {
     name = "%s"
@@ -284,7 +284,7 @@ resource "appoptics_alert" "foobar" {
 }`, name)
 }
 
-func testAccCheckAppOpticsAlertConfig_full(name string) string {
+func testAccCheckAppOpticsAlertConfigFull(name string) string {
 	return fmt.Sprintf(`
 resource "appoptics_service" "foobar" {
     title = "Foo Bar"
@@ -304,7 +304,7 @@ resource "appoptics_alert" "foobar" {
       type = "above"
       threshold = 10
       duration = 600
-      metric_name = "librato.cpu.percent.idle"
+      metric_name = "appoptics.cpu.percent.idle"
     }
     attributes {
       runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
@@ -314,7 +314,7 @@ resource "appoptics_alert" "foobar" {
 }`, name)
 }
 
-func testAccCheckAppOpticsAlertConfig_full_update(name string) string {
+func testAccCheckAppOpticsAlertConfigFullUpdate(name string) string {
 	return fmt.Sprintf(`
 resource "appoptics_service" "foobar" {
     title = "Foo Bar"
@@ -334,7 +334,7 @@ resource "appoptics_alert" "foobar" {
       type = "above"
       threshold = 10
       duration = 60
-      metric_name = "librato.cpu.percent.idle"
+      metric_name = "appoptics.cpu.percent.idle"
     }
     attributes {
       runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
