@@ -249,7 +249,7 @@ func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return fmt.Errorf("Error creating AppOptics alert %s: %s", alert.Name, err)
 	}
-	log.Printf("[INFO] Created AppOptics alert: %s", *alertResult)
+	log.Printf("[INFO] Created AppOptics alert: %s", alertResult.Name)
 
 	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, err := client.AlertsService().Retrieve(alertResult.ID)
@@ -286,7 +286,7 @@ func resourceAppOpticsAlertRead(d *schema.ResourceData, meta interface{}) error 
 		}
 		return fmt.Errorf("Error reading AppOptics Alert %s: %s", d.Id(), err)
 	}
-	log.Printf("[INFO] Received AppOptics Alert: %s", *alert)
+	log.Printf("[INFO] Received AppOptics Alert: %s", alert.Name)
 
 	d.Set("name", alert.Name)
 
@@ -326,7 +326,7 @@ func flattenServices(d *schema.ResourceData, services []*appoptics.Service) []in
 	retServices := make([]interface{}, 0, len(services))
 
 	for _, serviceData := range services {
-		retServices = append(retServices, fmt.Sprintf("%.f", serviceData.ID))
+		retServices = append(retServices, fmt.Sprintf("%.d", serviceData.ID))
 	}
 
 	return retServices
@@ -461,7 +461,7 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 		alert.Attributes = attributeData[0].(map[string]interface{})
 	}
 
-	log.Printf("[INFO] Updating AppOptics alert: %s", alert)
+	log.Printf("[INFO] Updating AppOptics alert: %s", alert.Name)
 	updErr := client.AlertsService().Update(alert)
 	if updErr != nil {
 		return fmt.Errorf("Error updating AppOptics alert: %s", updErr)
