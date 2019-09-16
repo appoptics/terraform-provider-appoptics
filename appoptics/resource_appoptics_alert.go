@@ -333,7 +333,7 @@ func flattenServices(d *schema.ResourceData, services []*appoptics.Service) []in
 }
 
 func flattenCondition(d *schema.ResourceData, conditions []*appoptics.AlertCondition) []interface{} {
-	retConditions := make([]interface{}, 0, len(conditions))
+	out := make([]interface{}, 0, len(conditions))
 	for _, c := range conditions {
 		condition := make(map[string]interface{})
 		condition["type"] = c.Type
@@ -346,10 +346,10 @@ func flattenCondition(d *schema.ResourceData, conditions []*appoptics.AlertCondi
 		// condition["detect_reset"] = c.DetectReset
 		condition["duration"] = int(c.Duration)
 		condition["summary_function"] = c.SummaryFunction
-		retConditions = append(retConditions, condition)
+		out = append(out, condition)
 	}
 
-	return retConditions
+	return out
 }
 
 func flattenConditionTags(in []*appoptics.Tag) []interface{} {
@@ -368,11 +368,11 @@ func flattenConditionTags(in []*appoptics.Tag) []interface{} {
 }
 
 func flattenConditionTagsValues(in []string) []interface{} {
-	vs := make([]interface{}, 0, len(in))
+	out := make([]interface{}, 0, len(in))
 	for _, v := range in {
-		vs = append(vs, v)
+		out = append(out, v)
 	}
-	return vs
+	return out
 }
 
 func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) error {
