@@ -25,8 +25,7 @@ func TestAccAppOpticsAlertMinimal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
 					testAccCheckAppOpticsAlertName(&alert, name),
-					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "name", name),
+					resource.TestCheckResourceAttr("appoptics_alert.foobar", "name", name),
 				),
 			},
 		},
@@ -264,7 +263,12 @@ func testAccCheckAppOpticsAlertExists(n string, alert *appoptics.Alert) resource
 func testAccCheckAppOpticsAlertConfigMinimal(name string) string {
 	return fmt.Sprintf(`
 resource "appoptics_alert" "foobar" {
-    name = "%s"
+	name = "%s"
+	condition {
+		type        = "above"
+		threshold   = 10
+		metric_name = "system.cpu.utilization"
+	}
 }`, name)
 }
 
@@ -272,15 +276,25 @@ func testAccCheckAppOpticsAlertConfigBasic(name string) string {
 	return fmt.Sprintf(`
 resource "appoptics_alert" "foobar" {
     name = "%s"
-    description = "A Test Alert"
+	description = "A Test Alert"
+	condition {
+		type        = "above"
+		threshold   = 10
+		metric_name = "system.cpu.utilization"
+	}
 }`, name)
 }
 
 func testAccCheckAppOpticsAlertConfigNewValue(name string) string {
 	return fmt.Sprintf(`
 resource "appoptics_alert" "foobar" {
-    name = "%s"
-    description = "A modified Test Alert"
+	name = "%s"
+	description = "A modified Test Alert"
+	condition {
+		type        = "above"
+		threshold   = 10
+		metric_name = "system.cpu.utilization"
+	}
 }`, name)
 }
 
@@ -297,20 +311,19 @@ EOF
 }
 
 resource "appoptics_alert" "foobar" {
-    name = "%s"
-    description = "A Test Alert"
-    services = [ "${appoptics_service.foobar.id}" ]
-    condition {
-      type = "above"
-      threshold = 10
-      duration = 600
-      metric_name = "appoptics.cpu.percent.idle"
-    }
-    attributes {
-      runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
-    }
-    active = false
-    rearm_seconds = 300
+	name = "%s"
+	description = "A Test Alert"
+	services = [ "${appoptics_service.foobar.id}" ]
+	condition {
+		type        = "above"
+		threshold   = 10
+		metric_name = "system.cpu.utilization"
+	}
+	attributes {
+		runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
+	}
+	active = false
+	rearm_seconds = 300
 }`, name)
 }
 
@@ -330,16 +343,15 @@ resource "appoptics_alert" "foobar" {
     name = "%s"
     description = "A Test Alert"
     services = [ "${appoptics_service.foobar.id}" ]
-    condition {
-      type = "above"
-      threshold = 10
-      duration = 60
-      metric_name = "appoptics.cpu.percent.idle"
-    }
-    attributes {
-      runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
-    }
-    active = false
-    rearm_seconds = 1200
+	condition {
+		type        = "above"
+		threshold   = 10
+		metric_name = "system.cpu.utilization"
+	}
+	attributes {
+		runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
+	}
+	active = false
+	rearm_seconds = 1200
 }`, name)
 }
