@@ -29,7 +29,8 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("APPOPTICS_TOKEN"); v == "" {
+	v, ok := os.LookupEnv("APPOPTICS_TOKEN")
+	if !ok || v == "" {
 		t.Fatal("APPOPTICS_TOKEN must be set for acceptance tests")
 	}
 }
