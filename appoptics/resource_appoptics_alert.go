@@ -181,8 +181,10 @@ func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) erro
 	if v, ok := d.GetOk("services"); ok {
 		vs := v.(*schema.Set)
 		services := make([]*appoptics.Service, vs.Len())
-		for i, serviceData := range vs.List() {
-			services[i] = serviceData.(*appoptics.Service)
+		for i, serviceID := range vs.List() {
+			service := new(appoptics.Service)
+			service.ID = serviceID.(int)
+			services[i] = service
 		}
 		alert.Services = services
 	}
@@ -399,8 +401,10 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 	if d.HasChange("services") {
 		vs := d.Get("services").(*schema.Set)
 		services := make([]*appoptics.Service, vs.Len())
-		for i, serviceData := range vs.List() {
-			services[i] = serviceData.(*appoptics.Service)
+		for i, serviceID := range vs.List() {
+			service := new(appoptics.Service)
+			service.ID = serviceID.(int)
+			services[i] = service
 		}
 		alert.Services = services
 	}
