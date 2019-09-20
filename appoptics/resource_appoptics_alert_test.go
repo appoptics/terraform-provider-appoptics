@@ -73,13 +73,35 @@ func TestAccAppOpticsAlertFull(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "name", name),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.836525194.metric_name", "appoptics.cpu.percent.idle"),
+						"appoptics_alert.foobar", "active", "true"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.836525194.type", "above"),
+						"appoptics_alert.foobar", "condition.#", "1"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.836525194.threshold", "10"),
+						"appoptics_alert.foobar", "condition.3796868183.detect_reset", ""),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.836525194.duration", "600"),
+						"appoptics_alert.foobar", "condition.3796868183.duration", "600"),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "condition.3796868183.metric_name", "system.cpu.utilization"),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "condition.3796868183.summary_function", ""),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "condition.3796868183.tag.#", "1"),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "condition.3796868183.tag.0.grouped", "true"),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "condition.3796868183.tag.0.name", "hostname"),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "condition.3796868183.tag.0.values.#", "2"),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "condition.3796868183.tag.0.values.0", "host1"),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "condition.3796868183.tag.0.values.1", "host2"),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "condition.3796868183.threshold", "10"),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "condition.3796868183.type", "above"),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "rearm_seconds", "600"),
 				),
 			},
 		},
@@ -167,7 +189,7 @@ func TestAccAppOpticsAlertFullUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "rearm_seconds", "1200"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.2524844643.metric_name", "appoptics.cpu.percent.idle"),
+						"appoptics_alert.foobar", "condition.2524844643.metric_name", "system.cpu.utilization"),
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "condition.2524844643.type", "above"),
 					resource.TestCheckResourceAttr(

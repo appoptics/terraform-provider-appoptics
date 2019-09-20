@@ -183,6 +183,7 @@ func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) erro
 		services := make([]*appoptics.Service, vs.Len())
 		for i, serviceID := range vs.List() {
 			service := new(appoptics.Service)
+			var err error
 			service.ID, err = strconv.Atoi(serviceID.(string))
 			if err != nil {
 				return err
@@ -237,15 +238,12 @@ func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) erro
 		alert.Conditions = conditions
 	}
 	if v, ok := d.GetOk("attributes"); ok {
-		attributeData := v.([]interface{})
+		attributeData := v.(map[string]interface{})
 		if len(attributeData) > 1 {
 			return fmt.Errorf("Only one set of attributes per alert is supported")
 		} else if len(attributeData) == 1 {
-			if attributeData[0] == nil {
-				return fmt.Errorf("No attributes found in attributes block")
-			}
 			// The only attribute here should be the runbook_url
-			alert.Attributes = attributeData[0].(map[string]interface{})
+			alert.Attributes = attributeData
 		}
 	}
 
@@ -267,7 +265,7 @@ func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	})
 	if retryErr != nil {
-		return fmt.Errorf("Error creating AppOptics alert: %s", err)
+		return fmt.Errorf("Error creating AppOptics alert %s: %s", alert.Name, err)
 	}
 
 	d.SetId(strconv.FormatUint(uint64(alertResult.ID), 10))
@@ -406,6 +404,7 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 		services := make([]*appoptics.Service, vs.Len())
 		for i, serviceID := range vs.List() {
 			service := new(appoptics.Service)
+			var err error
 			service.ID, err = strconv.Atoi(serviceID.(string))
 			if err != nil {
 				return err
