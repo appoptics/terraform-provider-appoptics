@@ -403,7 +403,10 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 		services := make([]*appoptics.Service, vs.Len())
 		for i, serviceID := range vs.List() {
 			service := new(appoptics.Service)
-			service.ID = serviceID.(int)
+			service.ID, err = strconv.Atoi(serviceID.(string))
+			if err != nil {
+				return err
+			}
 			services[i] = service
 		}
 		alert.Services = services
