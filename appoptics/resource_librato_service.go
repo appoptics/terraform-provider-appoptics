@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/akahn/go-librato/librato"
+	"github.com/appoptics/appoptics-api-go"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -77,14 +77,14 @@ func normalizeJSON(jsonString interface{}) string {
 }
 
 func resourceAppOpticsServiceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 
-	service := new(librato.Service)
+	service := new(appoptics.Service)
 	if v, ok := d.GetOk("type"); ok {
-		service.Type = librato.String(v.(string))
+		service.Type = v.(string)
 	}
 	if v, ok := d.GetOk("title"); ok {
-		service.Title = librato.String(v.(string))
+		service.Title = v.(string)
 	}
 	if v, ok := d.GetOk("settings"); ok {
 		res, expandErr := resourceAppOpticsServicesExpandSettings(normalizeJSON(v.(string)))
@@ -94,16 +94,16 @@ func resourceAppOpticsServiceCreate(d *schema.ResourceData, meta interface{}) er
 		service.Settings = res
 	}
 
-	serviceResult, _, err := client.Services.Create(service)
+	serviceResult, err := client.ServicesService().Create(service)
 
 	if err != nil {
 		return fmt.Errorf("Error creating AppOptics service: %s", err)
 	}
 
 	resource.Retry(1*time.Minute, func() *resource.RetryError {
-		_, _, err := client.Services.Get(*serviceResult.ID)
+		_, err := client.ServicesService().Retrieve(serviceResult.ID)
 		if err != nil {
-			if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
+			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
@@ -111,35 +111,35 @@ func resourceAppOpticsServiceCreate(d *schema.ResourceData, meta interface{}) er
 		return nil
 	})
 
-	d.SetId(strconv.Itoa(int(*serviceResult.ID)))
-	return resourceAppOpticsServiceReadResult(d, serviceResult)
+	d.SetId(strconv.Itoa(serviceResult.ID))
+	return resourceAppOpticsServiceReadResult(d, *serviceResult)
 }
 
 func resourceAppOpticsServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 	id, err := strconv.ParseUint(d.Id(), 10, 0)
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[INFO] Reading AppOptics Service: %d", id)
-	service, _, err := client.Services.Get(uint(id))
+	service, err := client.ServicesService().Retrieve(int(id))
 	if err != nil {
-		if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
+		if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("Error reading AppOptics Service %s: %s", d.Id(), err)
 	}
-	log.Printf("[INFO] Received AppOptics Service: %s", service)
+	log.Printf("[INFO] Received AppOptics Service: %s", service.Title)
 
-	return resourceAppOpticsServiceReadResult(d, service)
+	return resourceAppOpticsServiceReadResult(d, *service)
 }
 
-func resourceAppOpticsServiceReadResult(d *schema.ResourceData, service *librato.Service) error {
-	d.SetId(strconv.FormatUint(uint64(*service.ID), 10))
-	d.Set("type", *service.Type)
-	d.Set("title", *service.Title)
+func resourceAppOpticsServiceReadResult(d *schema.ResourceData, service appoptics.Service) error {
+	d.SetId(strconv.FormatUint(uint64(service.ID), 10))
+	d.Set("type", service.Type)
+	d.Set("title", service.Title)
 	settings, _ := resourceAppOpticsServicesFlatten(service.Settings)
 	d.Set("settings", settings)
 
@@ -147,7 +147,7 @@ func resourceAppOpticsServiceReadResult(d *schema.ResourceData, service *librato
 }
 
 func resourceAppOpticsServiceUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 
 	serviceID, err := strconv.ParseUint(d.Id(), 10, 0)
 	if err != nil {
@@ -155,18 +155,18 @@ func resourceAppOpticsServiceUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	// Just to have whole object for comparison before/after update
-	fullService, _, err := client.Services.Get(uint(serviceID))
+	fullService, err := client.ServicesService().Retrieve(int(serviceID))
 	if err != nil {
 		return err
 	}
 
-	service := new(librato.Service)
+	service := new(appoptics.Service)
 	if d.HasChange("type") {
-		service.Type = librato.String(d.Get("type").(string))
+		service.Type = d.Get("type").(string)
 		fullService.Type = service.Type
 	}
 	if d.HasChange("title") {
-		service.Title = librato.String(d.Get("title").(string))
+		service.Title = d.Get("title").(string)
 		fullService.Title = service.Title
 	}
 	if d.HasChange("settings") {
@@ -178,8 +178,8 @@ func resourceAppOpticsServiceUpdate(d *schema.ResourceData, meta interface{}) er
 		fullService.Settings = res
 	}
 
-	log.Printf("[INFO] Updating AppOptics Service %d: %s", serviceID, service)
-	_, err = client.Services.Update(uint(serviceID), service)
+	log.Printf("[INFO] Updating AppOptics Service %d: %s", serviceID, service.Title)
+	err = client.ServicesService().Update(service)
 	if err != nil {
 		return fmt.Errorf("Error updating AppOptics service: %s", err)
 	}
@@ -194,7 +194,7 @@ func resourceAppOpticsServiceUpdate(d *schema.ResourceData, meta interface{}) er
 		ContinuousTargetOccurence: 5,
 		Refresh: func() (interface{}, string, error) {
 			log.Printf("[DEBUG] Checking if AppOptics Service %d was updated yet", serviceID)
-			changedService, _, getErr := client.Services.Get(uint(serviceID))
+			changedService, getErr := client.ServicesService().Retrieve(int(serviceID))
 			if getErr != nil {
 				return changedService, "", getErr
 			}
@@ -213,22 +213,22 @@ func resourceAppOpticsServiceUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceAppOpticsServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 	id, err := strconv.ParseUint(d.Id(), 10, 0)
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[INFO] Deleting Service: %d", id)
-	_, err = client.Services.Delete(uint(id))
+	err = client.ServicesService().Delete(int(id))
 	if err != nil {
 		return fmt.Errorf("Error deleting Service: %s", err)
 	}
 
 	resource.Retry(1*time.Minute, func() *resource.RetryError {
-		_, _, err := client.Services.Get(uint(id))
+		_, err := client.ServicesService().Retrieve(int(id))
 		if err != nil {
-			if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
+			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 				return nil
 			}
 			return resource.NonRetryableError(err)
