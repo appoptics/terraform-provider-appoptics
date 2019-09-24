@@ -22,7 +22,6 @@ func TestAccAppOpticsServiceBasic(t *testing.T) {
 				Config: testAccCheckAppOpticsServiceConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsServiceExists("appoptics_service.foobar", &service),
-					testAccCheckAppOpticsServiceTitle(&service, "Foo Bar"),
 					resource.TestCheckResourceAttr(
 						"appoptics_service.foobar", "title", "Foo Bar"),
 				),
@@ -43,7 +42,6 @@ func TestAccAppOpticsService_Updated(t *testing.T) {
 				Config: testAccCheckAppOpticsServiceConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsServiceExists("appoptics_service.foobar", &service),
-					testAccCheckAppOpticsServiceTitle(&service, "Foo Bar"),
 					resource.TestCheckResourceAttr(
 						"appoptics_service.foobar", "title", "Foo Bar"),
 				),
@@ -52,7 +50,6 @@ func TestAccAppOpticsService_Updated(t *testing.T) {
 				Config: testAccCheckAppOpticsServiceConfigNewValue,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsServiceExists("appoptics_service.foobar", &service),
-					testAccCheckAppOpticsServiceTitle(&service, "Bar Baz"),
 					resource.TestCheckResourceAttr(
 						"appoptics_service.foobar", "title", "Bar Baz"),
 				),
@@ -82,17 +79,6 @@ func testAccCheckAppOpticsServiceDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccCheckAppOpticsServiceTitle(service *appoptics.Service, title string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-
-		if service.Title != title {
-			return fmt.Errorf("Bad title: %s", service.Title)
-		}
-
-		return nil
-	}
 }
 
 func testAccCheckAppOpticsServiceExists(n string, service *appoptics.Service) resource.TestCheckFunc {
