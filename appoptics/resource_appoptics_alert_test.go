@@ -73,35 +73,27 @@ func TestAccAppOpticsAlertFull(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "name", name),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "active", "true"),
+						"appoptics_alert.foobar", "attributes.runbook_url", "https://www.youtube.com/watch?v=oHg5SJYRHA0"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.#", "1"),
+						"appoptics_alert.foobar", "condition.411654007.metric_name", "system.cpu.utilization"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.3796868183.detect_reset", ""),
+						"appoptics_alert.foobar", "condition.411654007.summary_function", ""),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.3796868183.duration", "600"),
+						"appoptics_alert.foobar", "condition.411654007.threshold", "10"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.3796868183.metric_name", "system.cpu.utilization"),
+						"appoptics_alert.foobar", "condition.411654007.type", "above"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.3796868183.summary_function", ""),
+						"appoptics_alert.foobar", "condition.411654007.tag.0.grouped", "true"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.3796868183.tag.#", "1"),
+						"appoptics_alert.foobar", "condition.411654007.tag.0.name", "hostname"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.3796868183.tag.0.grouped", "true"),
+						"appoptics_alert.foobar", "condition.411654007.tag.0.values.#", "2"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.3796868183.tag.0.name", "hostname"),
+						"appoptics_alert.foobar", "condition.411654007.tag.0.values.0", "host1"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.3796868183.tag.0.values.#", "2"),
+						"appoptics_alert.foobar", "condition.411654007.tag.0.values.1", "host2"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.3796868183.tag.0.values.0", "host1"),
-					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.3796868183.tag.0.values.1", "host2"),
-					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.3796868183.threshold", "10"),
-					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.3796868183.type", "above"),
-					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "rearm_seconds", "600"),
+						"appoptics_alert.foobar", "rearm_seconds", "300"),
 				),
 			},
 		},
@@ -189,13 +181,11 @@ func TestAccAppOpticsAlertFullUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "rearm_seconds", "1200"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.2524844643.metric_name", "system.cpu.utilization"),
+						"appoptics_alert.foobar", "condition.498665064.metric_name", "system.cpu.utilization"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.2524844643.type", "above"),
+						"appoptics_alert.foobar", "condition.498665064.type", "above"),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.2524844643.threshold", "10"),
-					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "condition.2524844643.duration", "60"),
+						"appoptics_alert.foobar", "condition.498665064.threshold", "10"),
 				),
 			},
 		},
@@ -340,11 +330,16 @@ resource "appoptics_alert" "foobar" {
 		type        = "above"
 		threshold   = 10
 		metric_name = "system.cpu.utilization"
+
+		tag {
+			name = "hostname"
+			grouped = true
+			values = ["host1", "host2"]
+		}
 	}
 	attributes {
 		runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
 	}
-	active = false
 	rearm_seconds = 300
 }`, name)
 }
@@ -363,8 +358,8 @@ EOF
 
 resource "appoptics_alert" "foobar" {
     name = "%s"
-    description = "A Test Alert"
-    services = [ "${appoptics_service.foobar.id}" ]
+	description = "A Test Alert"
+	services = [ "${appoptics_service.foobar.id}" ]
 	condition {
 		type        = "above"
 		threshold   = 10
@@ -373,7 +368,6 @@ resource "appoptics_alert" "foobar" {
 	attributes {
 		runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
 	}
-	active = false
 	rearm_seconds = 1200
 }`, name)
 }
