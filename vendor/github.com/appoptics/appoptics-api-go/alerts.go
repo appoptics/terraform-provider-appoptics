@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// Alert defines a policy for sending alarms to services when conditions are met
 type Alert struct {
 	ID           int                    `json:"id,omitempty"`
 	Name         string                 `json:"name,omitempty"`
@@ -12,7 +13,21 @@ type Alert struct {
 	RearmSeconds int                    `json:"rearm_seconds,omitempty"`
 	Conditions   []*AlertCondition      `json:"conditions,omitempty"`
 	Attributes   map[string]interface{} `json:"attributes,omitempty"`
-	Services     []*Service             `json:"services,omitempty"` // correspond to IDs of Service objects
+	Services     []*Service             `json:"services,omitempty"`
+	CreatedAt    int                    `json:"created_at,omitempty"`
+	UpdatedAt    int                    `json:"updated_at,omitempty"`
+}
+
+// AlertRequest is identical to Alert except for the fact that Services is a []int in AlertRequest
+type AlertRequest struct {
+	ID           int                    `json:"id,omitempty"`
+	Name         string                 `json:"name,omitempty"`
+	Description  string                 `json:"description,omitempty"`
+	Active       bool                   `json:"active,omitempty"`
+	RearmSeconds int                    `json:"rearm_seconds,omitempty"`
+	Conditions   []*AlertCondition      `json:"conditions,omitempty"`
+	Attributes   map[string]interface{} `json:"attributes,omitempty"`
+	Services     []int                  `json:"services,omitempty"` // correspond to IDs of Service objects
 	CreatedAt    int                    `json:"created_at,omitempty"`
 	UpdatedAt    int                    `json:"updated_at,omitempty"`
 }
@@ -24,6 +39,7 @@ type AlertCondition struct {
 	Threshold       float64 `json:"threshold,omitempty"`
 	SummaryFunction string  `json:"summary_function,omitempty"`
 	Duration        int     `json:"duration,omitempty"`
+	DetectReset     bool    `json:"detect_reset,omitempty"`
 	Tags            []*Tag  `json:"tags,omitempty"`
 }
 
@@ -32,7 +48,7 @@ type AlertStatus struct {
 	Status string `json:"status,omitempty"`
 }
 
-type AlertsResponse struct {
+type AlertsListResponse struct {
 	Query  QueryInfo `json:"query,omitempty"`
 	Alerts []*Alert  `json:"alerts,omitempty"`
 }
@@ -42,10 +58,10 @@ type AlertsService struct {
 }
 
 type AlertsCommunicator interface {
-	List() (*AlertsResponse, error)
+	List() (*AlertsListResponse, error)
 	Retrieve(int) (*Alert, error)
-	Create(*Alert) (*Alert, error)
-	Update(*Alert) error
+	Create(*AlertRequest) (*Alert, error)
+	Update(*AlertRequest) error
 	AssociateToService(int, int) error
 	DisassociateFromService(alertId, serviceId int) error
 	Delete(int) error
@@ -57,13 +73,13 @@ func NewAlertsService(c *Client) *AlertsService {
 }
 
 // List retrieves all Alerts
-func (as *AlertsService) List() (*AlertsResponse, error) {
+func (as *AlertsService) List() (*AlertsListResponse, error) {
 	req, err := as.client.NewRequest("GET", "alerts", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	alertsResponse := &AlertsResponse{}
+	alertsResponse := &AlertsListResponse{}
 
 	_, err = as.client.Do(req, &alertsResponse)
 
@@ -93,7 +109,7 @@ func (as *AlertsService) Retrieve(id int) (*Alert, error) {
 }
 
 // Create creates the Alert
-func (as *AlertsService) Create(a *Alert) (*Alert, error) {
+func (as *AlertsService) Create(a *AlertRequest) (*Alert, error) {
 	req, err := as.client.NewRequest("POST", "alerts", a)
 	if err != nil {
 		return nil, err
@@ -110,7 +126,7 @@ func (as *AlertsService) Create(a *Alert) (*Alert, error) {
 }
 
 // Update updates the Alert
-func (as *AlertsService) Update(a *Alert) error {
+func (as *AlertsService) Update(a *AlertRequest) error {
 	path := fmt.Sprintf("alerts/%d", a.ID)
 	req, err := as.client.NewRequest("PUT", path, a)
 	if err != nil {
