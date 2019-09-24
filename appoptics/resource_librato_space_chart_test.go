@@ -40,7 +40,7 @@ func TestAccAppOpticsSpaceChart_Full(t *testing.T) {
 		CheckDestroy: testAccCheckAppOpticsSpaceChartDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccCheckAppOpticsSpaceChartConfig_full,
+				Config: testAccCheckAppOpticsSpaceChartConfigFull,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsSpaceChartExists("appoptics_space_chart.foobar", &spaceChart),
 					testAccCheckAppOpticsSpaceChartName(&spaceChart, "Foo Bar"),
