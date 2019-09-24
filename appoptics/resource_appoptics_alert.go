@@ -167,7 +167,7 @@ func tagsValuesHash(s []interface{}) int {
 func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*appoptics.Client)
 
-	alert := appoptics.Alert{
+	alert := appoptics.AlertRequest{
 		Name: d.Get("name").(string),
 	}
 	if v, ok := d.GetOk("description"); ok {
@@ -178,17 +178,11 @@ func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) erro
 	if v, ok := d.GetOk("rearm_seconds"); ok {
 		alert.RearmSeconds = v.(int)
 	}
-	if v, ok := d.GetOk("services"); ok {
-		vs := v.(*schema.Set)
-		services := make([]*appoptics.Service, vs.Len())
+	if _, ok := d.GetOk("services"); ok {
+		vs := d.Get("services").(*schema.Set)
+		services := make([]int, vs.Len())
 		for i, serviceID := range vs.List() {
-			service := new(appoptics.Service)
-			var err error
-			service.ID, err = strconv.Atoi(serviceID.(string))
-			if err != nil {
-				return err
-			}
-			services[i] = service
+			services[i] = serviceID.(int)
 		}
 		alert.Services = services
 	}
@@ -386,7 +380,7 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	alert := new(appoptics.Alert)
+	alert := new(appoptics.AlertRequest)
 	alert.ID = int(id)
 	alert.Name = d.Get("name").(string)
 
@@ -401,15 +395,9 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 	if d.HasChange("services") {
 		vs := d.Get("services").(*schema.Set)
-		services := make([]*appoptics.Service, vs.Len())
+		services := make([]int, vs.Len())
 		for i, serviceID := range vs.List() {
-			service := new(appoptics.Service)
-			var err error
-			service.ID, err = strconv.Atoi(serviceID.(string))
-			if err != nil {
-				return err
-			}
-			services[i] = service
+			services[i] = serviceID.(int)
 		}
 		alert.Services = services
 	}
