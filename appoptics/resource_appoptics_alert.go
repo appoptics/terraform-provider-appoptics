@@ -182,7 +182,11 @@ func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) erro
 		vs := d.Get("services").(*schema.Set)
 		services := make([]int, vs.Len())
 		for i, serviceID := range vs.List() {
-			services[i] = serviceID.(int)
+			var err error
+			services[i], err = strconv.Atoi(serviceID.(string))
+			if err != nil {
+				return fmt.Errorf("Error: %s", err)
+			}
 		}
 		alert.Services = services
 	}
@@ -397,7 +401,11 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 		vs := d.Get("services").(*schema.Set)
 		services := make([]int, vs.Len())
 		for i, serviceID := range vs.List() {
-			services[i] = serviceID.(int)
+			var err error
+			services[i], err = strconv.Atoi(serviceID.(string))
+			if err != nil {
+				return fmt.Errorf("Error: %s", err)
+			}
 		}
 		alert.Services = services
 	}
