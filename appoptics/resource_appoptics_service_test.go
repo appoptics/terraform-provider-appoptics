@@ -5,13 +5,13 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/akahn/go-librato/librato"
+	"github.com/appoptics/appoptics-api-go"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccAppOpticsServiceBasic(t *testing.T) {
-	var service librato.Service
+	var service appoptics.Service
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +22,6 @@ func TestAccAppOpticsServiceBasic(t *testing.T) {
 				Config: testAccCheckAppOpticsServiceConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsServiceExists("appoptics_service.foobar", &service),
-					testAccCheckAppOpticsServiceTitle(&service, "Foo Bar"),
 					resource.TestCheckResourceAttr(
 						"appoptics_service.foobar", "title", "Foo Bar"),
 				),
@@ -31,8 +30,8 @@ func TestAccAppOpticsServiceBasic(t *testing.T) {
 	})
 }
 
-func TestAccAppOpticsService_Updated(t *testing.T) {
-	var service librato.Service
+func TestAccAppOpticsServiceUpdated(t *testing.T) {
+	var service appoptics.Service
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -43,7 +42,6 @@ func TestAccAppOpticsService_Updated(t *testing.T) {
 				Config: testAccCheckAppOpticsServiceConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsServiceExists("appoptics_service.foobar", &service),
-					testAccCheckAppOpticsServiceTitle(&service, "Foo Bar"),
 					resource.TestCheckResourceAttr(
 						"appoptics_service.foobar", "title", "Foo Bar"),
 				),
@@ -52,7 +50,6 @@ func TestAccAppOpticsService_Updated(t *testing.T) {
 				Config: testAccCheckAppOpticsServiceConfigNewValue,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsServiceExists("appoptics_service.foobar", &service),
-					testAccCheckAppOpticsServiceTitle(&service, "Bar Baz"),
 					resource.TestCheckResourceAttr(
 						"appoptics_service.foobar", "title", "Bar Baz"),
 				),
@@ -62,7 +59,7 @@ func TestAccAppOpticsService_Updated(t *testing.T) {
 }
 
 func testAccCheckAppOpticsServiceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*librato.Client)
+	client := testAccProvider.Meta().(*appoptics.Client)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "appoptics_service" {
@@ -74,7 +71,7 @@ func testAccCheckAppOpticsServiceDestroy(s *terraform.State) error {
 			return fmt.Errorf("ID not a number")
 		}
 
-		_, _, err = client.Services.Get(uint(id))
+		_, err = client.ServicesService().Retrieve(int(id))
 
 		if err == nil {
 			return fmt.Errorf("Service still exists")
@@ -84,18 +81,7 @@ func testAccCheckAppOpticsServiceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAppOpticsServiceTitle(service *librato.Service, title string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-
-		if service.Title == nil || *service.Title != title {
-			return fmt.Errorf("Bad title: %s", *service.Title)
-		}
-
-		return nil
-	}
-}
-
-func testAccCheckAppOpticsServiceExists(n string, service *librato.Service) resource.TestCheckFunc {
+func testAccCheckAppOpticsServiceExists(n string, service *appoptics.Service) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
@@ -107,24 +93,22 @@ func testAccCheckAppOpticsServiceExists(n string, service *librato.Service) reso
 			return fmt.Errorf("No Service ID is set")
 		}
 
-		client := testAccProvider.Meta().(*librato.Client)
+		client := testAccProvider.Meta().(*appoptics.Client)
 
 		id, err := strconv.ParseUint(rs.Primary.ID, 10, 0)
 		if err != nil {
 			return fmt.Errorf("ID not a number")
 		}
 
-		foundService, _, err := client.Services.Get(uint(id))
+		foundService, err := client.ServicesService().Retrieve(int(id))
 
 		if err != nil {
 			return err
 		}
 
-		if foundService.ID == nil || *foundService.ID != uint(id) {
+		if foundService.ID != int(id) {
 			return fmt.Errorf("Service not found")
 		}
-
-		*service = *foundService
 
 		return nil
 	}
