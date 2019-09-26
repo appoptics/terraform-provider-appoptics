@@ -30,7 +30,7 @@ func TestAccAppOpticsServiceBasic(t *testing.T) {
 	})
 }
 
-func TestAccAppOpticsService_Updated(t *testing.T) {
+func TestAccAppOpticsServiceUpdated(t *testing.T) {
 	var service appoptics.Service
 
 	resource.Test(t, resource.TestCase{
