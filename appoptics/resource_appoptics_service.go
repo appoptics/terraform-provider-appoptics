@@ -154,20 +154,16 @@ func resourceAppOpticsServiceUpdate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	// Just to have whole object for comparison before/after update
-	fullService, err := client.ServicesService().Retrieve(int(serviceID))
+	service, err := client.ServicesService().Retrieve(int(serviceID))
 	if err != nil {
 		return err
 	}
 
-	service := new(appoptics.Service)
 	if d.HasChange("type") {
 		service.Type = d.Get("type").(string)
-		fullService.Type = service.Type
 	}
 	if d.HasChange("title") {
 		service.Title = d.Get("title").(string)
-		fullService.Title = service.Title
 	}
 	if d.HasChange("settings") {
 		res, getErr := resourceAppOpticsServicesExpandSettings(normalizeJSON(d.Get("settings").(string)))
@@ -175,7 +171,6 @@ func resourceAppOpticsServiceUpdate(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("Error expanding AppOptics service settings: %s", getErr)
 		}
 		service.Settings = res
-		fullService.Settings = res
 	}
 
 	log.Printf("[INFO] Updating AppOptics Service %d: %s", serviceID, service.Title)
@@ -198,7 +193,7 @@ func resourceAppOpticsServiceUpdate(d *schema.ResourceData, meta interface{}) er
 			if getErr != nil {
 				return changedService, "", getErr
 			}
-			isEqual := reflect.DeepEqual(*fullService, *changedService)
+			isEqual := reflect.DeepEqual(*service, *changedService)
 			log.Printf("[DEBUG] Updated AppOptics Service %d match: %t", serviceID, isEqual)
 			return changedService, fmt.Sprintf("%t", isEqual), nil
 		},
