@@ -24,7 +24,6 @@ func TestAccAppOpticsSpaceBasic(t *testing.T) {
 				Config: testAccCheckAppOpticsSpaceConfigBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsSpaceExists("appoptics_space.foobar", &space),
-					testAccCheckAppOpticsSpaceAttributes(&space, name),
 					resource.TestCheckResourceAttr(
 						"appoptics_space.foobar", "name", name),
 				),
@@ -53,17 +52,6 @@ func testAccCheckAppOpticsSpaceDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccCheckAppOpticsSpaceAttributes(space *appoptics.Space, name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-
-		if space.Name == "" || space.Name != name {
-			return fmt.Errorf("Bad name: %s", space.Name)
-		}
-
-		return nil
-	}
 }
 
 func testAccCheckAppOpticsSpaceExists(n string, space *appoptics.Space) resource.TestCheckFunc {
