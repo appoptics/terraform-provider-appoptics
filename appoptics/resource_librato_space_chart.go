@@ -65,10 +65,31 @@ func resourceAppOpticsSpaceChart() *schema.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"stream.composite"},
 						},
-						"source": {
-							Type:          schema.TypeString,
+						"tag": {
+							Type:          schema.TypeList,
 							Optional:      true,
 							ConflictsWith: []string{"stream.composite"},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"grouped": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"dynamic": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"values": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+								},
+							},
 						},
 						"group_function": {
 							Type:          schema.TypeString,
@@ -130,8 +151,32 @@ func resourceAppOpticsSpaceChartHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%s-", m["metric"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["source"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["composite"].(string)))
+	tags, present := m["tag"].([]interface{})
+	if present && len(tags) > 0 {
+		buf.WriteString(fmt.Sprintf("%d-", chartStreamTagsHash(tags)))
+	}
+
+	return hashcode.String(buf.String())
+}
+
+func chartStreamTagsHash(tags []interface{}) int {
+	var buf bytes.Buffer
+	for _, v := range tags {
+		m := v.(map[string]interface{})
+		buf.WriteString(fmt.Sprintf("%s-", m["name"]))
+		buf.WriteString(fmt.Sprintf("%s-", m["grouped"]))
+		buf.WriteString(fmt.Sprintf("%d-", chartStreamTagsValuesHash(m["values"].([]interface{}))))
+	}
+
+	return hashcode.String(buf.String())
+}
+
+func chartStreamTagsValuesHash(s []interface{}) int {
+	var buf bytes.Buffer
+	for _, v := range s {
+		buf.WriteString(fmt.Sprintf("%s-", v))
+	}
 
 	return hashcode.String(buf.String())
 }
@@ -156,7 +201,7 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 	}
 	if v, ok := d.GetOk("max"); ok {
 		if math.IsNaN(v.(float64)) {
-			return fmt.Errorf("Error updating AppOptics space chart. 'max' cannot be converted to a float64. %s: %s", d.Get("max"))
+			return fmt.Errorf("Error updating AppOptics space chart. 'max' cannot be converted to a float64. %s", d.Get("max"))
 		}
 		spaceChart.Max = v.(float64)
 	}
@@ -175,9 +220,8 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 			if v, ok := streamData["metric"].(string); ok && v != "" {
 				stream.Metric = v
 			}
-			if v, ok := streamData["source"].(string); ok && v != "" {
-				// TODO: use tags?
-				stream.Source = v
+			if v, ok := streamData["tags"].([]appoptics.Tag); ok {
+				stream.Tags = v
 			}
 			if v, ok := streamData["composite"].(string); ok && v != "" {
 				stream.Composite = v
@@ -285,9 +329,9 @@ func resourceAppOpticsSpaceChartStreamsGather(d *schema.ResourceData, streams []
 	retStreams := make([]map[string]interface{}, 0, len(streams))
 	for _, s := range streams {
 		stream := make(map[string]interface{})
+		// TODO: support all options in appoptics.Chart
 		stream["metric"] = s.Metric
-		// TODO: use tags?
-		stream["source"] = s.Source
+		stream["tags"] = s.Tags
 		stream["composite"] = s.Composite
 		stream["group_function"] = s.GroupFunction
 		stream["summary_function"] = s.SummaryFunction
@@ -352,9 +396,8 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 			if v, ok := streamData["metric"].(string); ok && v != "" {
 				stream.Metric = v
 			}
-			// TODO: use tags?
-			if v, ok := streamData["source"].(string); ok && v != "" {
-				stream.Source = v
+			if v, ok := streamData["tags"].([]appoptics.Tag); ok {
+				stream.Tags = v
 			}
 			if v, ok := streamData["composite"].(string); ok && v != "" {
 				stream.Composite = v
