@@ -117,7 +117,7 @@ func resourceAppOpticsAlertConditionsHash(v interface{}) int {
 
 	tags, present := m["tag"].([]interface{})
 	if present && len(tags) > 0 {
-		buf.WriteString(fmt.Sprintf("%d-", tagsHash(tags)))
+		buf.WriteString(fmt.Sprintf("%d-", alertConditionsTagsHash(tags)))
 	}
 
 	detectReset, present := m["detect_reset"]
@@ -143,19 +143,19 @@ func resourceAppOpticsAlertConditionsHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func tagsHash(tags []interface{}) int {
+func alertConditionsTagsHash(tags []interface{}) int {
 	var buf bytes.Buffer
 	for _, v := range tags {
 		m := v.(map[string]interface{})
 		buf.WriteString(fmt.Sprintf("%s-", m["name"]))
 		buf.WriteString(fmt.Sprintf("%s-", m["grouped"]))
-		buf.WriteString(fmt.Sprintf("%d-", tagsValuesHash(m["values"].([]interface{}))))
+		buf.WriteString(fmt.Sprintf("%d-", alertConditionsTagsValuesHash(m["values"].([]interface{}))))
 	}
 
 	return hashcode.String(buf.String())
 }
 
-func tagsValuesHash(s []interface{}) int {
+func alertConditionsTagsValuesHash(s []interface{}) int {
 	var buf bytes.Buffer
 	for _, v := range s {
 		buf.WriteString(fmt.Sprintf("%s-", v))
