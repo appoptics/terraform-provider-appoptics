@@ -139,7 +139,7 @@ func resourceAppOpticsSpaceChartHash(v interface{}) int {
 func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*appoptics.Client)
 
-	spaceID := uint(d.Get("space_id").(int))
+	spaceID := d.Get("space_id").(int)
 
 	spaceChart := new(appoptics.Chart)
 	if v, ok := d.GetOk("name"); ok {
@@ -150,17 +150,15 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 	}
 	if v, ok := d.GetOk("min"); ok {
 		if math.IsNaN(v.(float64)) {
-			spaceChart.Min = nil
-		} else {
-			spaceChart.Min = v.(float64)
+			return fmt.Errorf("Error updating AppOptics space chart. 'min' cannot be converted to a float64. %s", d.Get("min"))
 		}
+		spaceChart.Min = v.(float64)
 	}
 	if v, ok := d.GetOk("max"); ok {
 		if math.IsNaN(v.(float64)) {
-			spaceChart.Max = nil
-		} else {
-			spaceChart.Max = v.(float64)
+			return fmt.Errorf("Error updating AppOptics space chart. 'max' cannot be converted to a float64. %s: %s", d.Get("max"))
 		}
+		spaceChart.Max = v.(float64)
 	}
 	if v, ok := d.GetOk("label"); ok {
 		spaceChart.Label = v.(string)
@@ -178,6 +176,7 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 				stream.Metric = v
 			}
 			if v, ok := streamData["source"].(string); ok && v != "" {
+				// TODO: use tags?
 				stream.Source = v
 			}
 			if v, ok := streamData["composite"].(string); ok && v != "" {
@@ -202,23 +201,23 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 				stream.UnitsLong = v
 			}
 			if v, ok := streamData["min"].(float64); ok && !math.IsNaN(v) {
-				stream.Min = v
+				stream.Min = int(v)
 			}
 			if v, ok := streamData["max"].(float64); ok && !math.IsNaN(v) {
-				stream.Max = v
+				stream.Max = int(v)
 			}
 			streams[i] = stream
 		}
 		spaceChart.Streams = streams
 	}
 
-	spaceChartResult, _, err := client.Spaces.CreateChart(spaceID, spaceChart)
+	spaceChartResult, err := client.ChartsService().Create(spaceChart, spaceID)
 	if err != nil {
-		return fmt.Errorf("Error creating AppOptics space chart %s: %s", *spaceChart.Name, err)
+		return fmt.Errorf("Error creating AppOptics space chart %s: %s", spaceChart.Name, err)
 	}
 
 	resource.Retry(1*time.Minute, func() *resource.RetryError {
-		_, _, err := client.Spaces.GetChart(spaceID, *spaceChartResult.ID)
+		_, err := client.ChartsService().Retrieve(spaceChartResult.ID, spaceID)
 		if err != nil {
 			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 				return resource.RetryableError(err)
@@ -234,14 +233,14 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 func resourceAppOpticsSpaceChartRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*appoptics.Client)
 
-	spaceID := uint(d.Get("space_id").(int))
+	spaceID := d.Get("space_id").(int)
 
-	id, err := strconv.ParseUint(d.Id(), 10, 0)
+	id, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err
 	}
 
-	chart, _, err := client.Spaces.GetChart(spaceID, uint(id))
+	chart, err := client.ChartsService().Retrieve(id, spaceID)
 	if err != nil {
 		if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 			d.SetId("")
@@ -253,37 +252,25 @@ func resourceAppOpticsSpaceChartRead(d *schema.ResourceData, meta interface{}) e
 	return resourceAppOpticsSpaceChartReadResult(d, chart)
 }
 
-func resourceAppOpticsSpaceChartReadResult(d *schema.ResourceData, chart *appoptics.SpaceChart) error {
-	d.SetId(strconv.FormatUint(uint64(*chart.ID), 10))
-	if chart.Name != nil {
-		if err := d.Set("name", *chart.Name); err != nil {
-			return err
-		}
+func resourceAppOpticsSpaceChartReadResult(d *schema.ResourceData, chart *appoptics.Chart) error {
+	d.SetId(strconv.FormatUint(uint64(chart.ID), 10))
+	if err := d.Set("name", chart.Name); err != nil {
+		return err
 	}
-	if chart.Type != nil {
-		if err := d.Set("type", *chart.Type); err != nil {
-			return err
-		}
+	if err := d.Set("type", chart.Type); err != nil {
+		return err
 	}
-	if chart.Min != nil {
-		if err := d.Set("min", *chart.Min); err != nil {
-			return err
-		}
+	if err := d.Set("min", chart.Min); err != nil {
+		return err
 	}
-	if chart.Max != nil {
-		if err := d.Set("max", *chart.Max); err != nil {
-			return err
-		}
+	if err := d.Set("max", chart.Max); err != nil {
+		return err
 	}
-	if chart.Label != nil {
-		if err := d.Set("label", *chart.Label); err != nil {
-			return err
-		}
+	if err := d.Set("label", chart.Label); err != nil {
+		return err
 	}
-	if chart.RelatedSpace != nil {
-		if err := d.Set("related_space", *chart.RelatedSpace); err != nil {
-			return err
-		}
+	if err := d.Set("related_space", chart.RelatedSpace); err != nil {
+		return err
 	}
 
 	streams := resourceAppOpticsSpaceChartStreamsGather(d, chart.Streams)
@@ -294,37 +281,20 @@ func resourceAppOpticsSpaceChartReadResult(d *schema.ResourceData, chart *appopt
 	return nil
 }
 
-func resourceAppOpticsSpaceChartStreamsGather(d *schema.ResourceData, streams []appoptics.SpaceChartStream) []map[string]interface{} {
+func resourceAppOpticsSpaceChartStreamsGather(d *schema.ResourceData, streams []appoptics.Stream) []map[string]interface{} {
 	retStreams := make([]map[string]interface{}, 0, len(streams))
 	for _, s := range streams {
 		stream := make(map[string]interface{})
-		if s.Metric != nil {
-			stream["metric"] = *s.Metric
-		}
-		if s.Source != nil {
-			stream["source"] = *s.Source
-		}
-		if s.Composite != nil {
-			stream["composite"] = *s.Composite
-		}
-		if s.GroupFunction != nil {
-			stream["group_function"] = *s.GroupFunction
-		}
-		if s.SummaryFunction != nil {
-			stream["summary_function"] = *s.SummaryFunction
-		}
-		if s.TransformFunction != nil {
-			stream["transform_function"] = *s.TransformFunction
-		}
-		if s.Color != nil {
-			stream["color"] = *s.Color
-		}
-		if s.UnitsShort != nil {
-			stream["units_short"] = *s.UnitsShort
-		}
-		if s.UnitsLong != nil {
-			stream["units_long"] = *s.UnitsLong
-		}
+		stream["metric"] = s.Metric
+		// TODO: use tags?
+		stream["source"] = s.Source
+		stream["composite"] = s.Composite
+		stream["group_function"] = s.GroupFunction
+		stream["summary_function"] = s.SummaryFunction
+		stream["transform_function"] = s.TransformFunction
+		stream["color"] = s.Color
+		stream["units_short"] = s.UnitsShort
+		stream["units_long"] = s.UnitsLong
 		retStreams = append(retStreams, stream)
 	}
 
@@ -334,37 +304,35 @@ func resourceAppOpticsSpaceChartStreamsGather(d *schema.ResourceData, streams []
 func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*appoptics.Client)
 
-	spaceID := uint(d.Get("space_id").(int))
-	chartID, err := strconv.ParseUint(d.Id(), 10, 0)
+	spaceID := d.Get("space_id").(int)
+	chartID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// Just to have whole object for comparison before/after update
-	fullChart, _, err := client.Spaces.GetChart(spaceID, uint(chartID))
+	fullChart, err := client.ChartsService().Retrieve(chartID, spaceID)
 	if err != nil {
 		return err
 	}
 
-	spaceChart := new(appoptics.SpaceChart)
+	spaceChart := new(appoptics.Chart)
 	if d.HasChange("name") {
 		spaceChart.Name = d.Get("name").(string)
 		fullChart.Name = spaceChart.Name
 	}
 	if d.HasChange("min") {
 		if math.IsNaN(d.Get("min").(float64)) {
-			spaceChart.Min = nil
-		} else {
-			spaceChart.Min = d.Get("min").(float64)
+			return fmt.Errorf("Error updating AppOptics space chart. 'min' cannot be converted to a float64. %s: %s", d.Get("min"), err)
 		}
+		spaceChart.Min = d.Get("min").(float64)
 		fullChart.Min = spaceChart.Min
 	}
 	if d.HasChange("max") {
 		if math.IsNaN(d.Get("max").(float64)) {
-			spaceChart.Max = nil
-		} else {
-			spaceChart.Max = d.Get("max").(float64)
+			return fmt.Errorf("Error updating AppOptics space chart. 'max' cannot be converted to a float64. %s: %s", d.Get("max"), err)
 		}
+		spaceChart.Max = d.Get("max").(float64)
 		fullChart.Max = spaceChart.Max
 	}
 	if d.HasChange("label") {
@@ -372,18 +340,19 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 		fullChart.Label = spaceChart.Label
 	}
 	if d.HasChange("related_space") {
-		spaceChart.RelatedSpace = d.Get("related_space").(uint)
+		spaceChart.RelatedSpace = d.Get("related_space").(int)
 		fullChart.RelatedSpace = spaceChart.RelatedSpace
 	}
 	if d.HasChange("stream") {
 		vs := d.Get("stream").(*schema.Set)
-		streams := make([]appoptics.SpaceChartStream, vs.Len())
+		streams := make([]appoptics.Stream, vs.Len())
 		for i, streamDataM := range vs.List() {
 			streamData := streamDataM.(map[string]interface{})
-			var stream appoptics.SpaceChartStream
+			var stream appoptics.Stream
 			if v, ok := streamData["metric"].(string); ok && v != "" {
 				stream.Metric = v
 			}
+			// TODO: use tags?
 			if v, ok := streamData["source"].(string); ok && v != "" {
 				stream.Source = v
 			}
@@ -408,10 +377,10 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 			if v, ok := streamData["units_longs"].(string); ok && v != "" {
 				stream.UnitsLong = v
 			}
-			if v, ok := streamData["min"].(float64); ok && !math.IsNaN(v) {
+			if v, ok := streamData["min"].(int); ok && !math.IsNaN(float64(v)) {
 				stream.Min = v
 			}
-			if v, ok := streamData["max"].(float64); ok && !math.IsNaN(v) {
+			if v, ok := streamData["max"].(int); ok && !math.IsNaN(float64(v)) {
 				stream.Max = v
 			}
 			streams[i] = stream
@@ -420,9 +389,9 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 		fullChart.Streams = streams
 	}
 
-	_, err = client.Spaces.UpdateChart(spaceID, uint(chartID), spaceChart)
+	_, err = client.ChartsService().Update(spaceChart, spaceID)
 	if err != nil {
-		return fmt.Errorf("Error updating AppOptics space chart %s: %s", *spaceChart.Name, err)
+		return fmt.Errorf("Error updating AppOptics space chart %s: %s", spaceChart.Name, err)
 	}
 
 	// Wait for propagation since AppOptics updates are eventually consistent
@@ -434,7 +403,7 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 		ContinuousTargetOccurence: 5,
 		Refresh: func() (interface{}, string, error) {
 			log.Printf("[DEBUG] Checking if AppOptics Space Chart %d was updated yet", chartID)
-			changedChart, _, getErr := client.Spaces.GetChart(spaceID, uint(chartID))
+			changedChart, getErr := client.ChartsService().Retrieve(chartID, spaceID)
 			if getErr != nil {
 				return changedChart, "", getErr
 			}
@@ -455,21 +424,21 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 func resourceAppOpticsSpaceChartDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*appoptics.Client)
 
-	spaceID := uint(d.Get("space_id").(int))
+	spaceID := d.Get("space_id").(int)
 
-	id, err := strconv.ParseUint(d.Id(), 10, 0)
+	id, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[INFO] Deleting Chart: %d/%d", spaceID, uint(id))
-	_, err = client.Spaces.DeleteChart(spaceID, uint(id))
+	err = client.ChartsService().Delete(id, spaceID)
 	if err != nil {
 		return fmt.Errorf("Error deleting space: %s", err)
 	}
 
 	resource.Retry(1*time.Minute, func() *resource.RetryError {
-		_, _, err := client.Spaces.GetChart(spaceID, uint(id))
+		_, err := client.ChartsService().Retrieve(id, spaceID)
 		if err != nil {
 			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 				return nil
