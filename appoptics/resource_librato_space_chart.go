@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/akahn/go-librato/librato"
+	"github.com/appoptics/appoptics-api-go"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -137,75 +137,75 @@ func resourceAppOpticsSpaceChartHash(v interface{}) int {
 }
 
 func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 
 	spaceID := uint(d.Get("space_id").(int))
 
-	spaceChart := new(librato.SpaceChart)
+	spaceChart := new(appoptics.Chart)
 	if v, ok := d.GetOk("name"); ok {
-		spaceChart.Name = librato.String(v.(string))
+		spaceChart.Name = v.(string)
 	}
 	if v, ok := d.GetOk("type"); ok {
-		spaceChart.Type = librato.String(v.(string))
+		spaceChart.Type = v.(string)
 	}
 	if v, ok := d.GetOk("min"); ok {
 		if math.IsNaN(v.(float64)) {
 			spaceChart.Min = nil
 		} else {
-			spaceChart.Min = librato.Float(v.(float64))
+			spaceChart.Min = v.(float64)
 		}
 	}
 	if v, ok := d.GetOk("max"); ok {
 		if math.IsNaN(v.(float64)) {
 			spaceChart.Max = nil
 		} else {
-			spaceChart.Max = librato.Float(v.(float64))
+			spaceChart.Max = v.(float64)
 		}
 	}
 	if v, ok := d.GetOk("label"); ok {
-		spaceChart.Label = librato.String(v.(string))
+		spaceChart.Label = v.(string)
 	}
 	if v, ok := d.GetOk("related_space"); ok {
-		spaceChart.RelatedSpace = librato.Uint(uint(v.(int)))
+		spaceChart.RelatedSpace = v.(int)
 	}
 	if v, ok := d.GetOk("stream"); ok {
 		vs := v.(*schema.Set)
-		streams := make([]librato.SpaceChartStream, vs.Len())
+		streams := make([]appoptics.Stream, vs.Len())
 		for i, streamDataM := range vs.List() {
 			streamData := streamDataM.(map[string]interface{})
-			var stream librato.SpaceChartStream
+			var stream appoptics.Stream
 			if v, ok := streamData["metric"].(string); ok && v != "" {
-				stream.Metric = librato.String(v)
+				stream.Metric = v
 			}
 			if v, ok := streamData["source"].(string); ok && v != "" {
-				stream.Source = librato.String(v)
+				stream.Source = v
 			}
 			if v, ok := streamData["composite"].(string); ok && v != "" {
-				stream.Composite = librato.String(v)
+				stream.Composite = v
 			}
 			if v, ok := streamData["group_function"].(string); ok && v != "" {
-				stream.GroupFunction = librato.String(v)
+				stream.GroupFunction = v
 			}
 			if v, ok := streamData["summary_function"].(string); ok && v != "" {
-				stream.SummaryFunction = librato.String(v)
+				stream.SummaryFunction = v
 			}
 			if v, ok := streamData["transform_function"].(string); ok && v != "" {
-				stream.TransformFunction = librato.String(v)
+				stream.TransformFunction = v
 			}
 			if v, ok := streamData["color"].(string); ok && v != "" {
-				stream.Color = librato.String(v)
+				stream.Color = v
 			}
 			if v, ok := streamData["units_short"].(string); ok && v != "" {
-				stream.UnitsShort = librato.String(v)
+				stream.UnitsShort = v
 			}
 			if v, ok := streamData["units_longs"].(string); ok && v != "" {
-				stream.UnitsLong = librato.String(v)
+				stream.UnitsLong = v
 			}
 			if v, ok := streamData["min"].(float64); ok && !math.IsNaN(v) {
-				stream.Min = librato.Float(v)
+				stream.Min = v
 			}
 			if v, ok := streamData["max"].(float64); ok && !math.IsNaN(v) {
-				stream.Max = librato.Float(v)
+				stream.Max = v
 			}
 			streams[i] = stream
 		}
@@ -220,7 +220,7 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 	resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, _, err := client.Spaces.GetChart(spaceID, *spaceChartResult.ID)
 		if err != nil {
-			if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
+			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
@@ -232,7 +232,7 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAppOpticsSpaceChartRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 
 	spaceID := uint(d.Get("space_id").(int))
 
@@ -243,7 +243,7 @@ func resourceAppOpticsSpaceChartRead(d *schema.ResourceData, meta interface{}) e
 
 	chart, _, err := client.Spaces.GetChart(spaceID, uint(id))
 	if err != nil {
-		if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
+		if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 			d.SetId("")
 			return nil
 		}
@@ -253,7 +253,7 @@ func resourceAppOpticsSpaceChartRead(d *schema.ResourceData, meta interface{}) e
 	return resourceAppOpticsSpaceChartReadResult(d, chart)
 }
 
-func resourceAppOpticsSpaceChartReadResult(d *schema.ResourceData, chart *librato.SpaceChart) error {
+func resourceAppOpticsSpaceChartReadResult(d *schema.ResourceData, chart *appoptics.SpaceChart) error {
 	d.SetId(strconv.FormatUint(uint64(*chart.ID), 10))
 	if chart.Name != nil {
 		if err := d.Set("name", *chart.Name); err != nil {
@@ -294,7 +294,7 @@ func resourceAppOpticsSpaceChartReadResult(d *schema.ResourceData, chart *librat
 	return nil
 }
 
-func resourceAppOpticsSpaceChartStreamsGather(d *schema.ResourceData, streams []librato.SpaceChartStream) []map[string]interface{} {
+func resourceAppOpticsSpaceChartStreamsGather(d *schema.ResourceData, streams []appoptics.SpaceChartStream) []map[string]interface{} {
 	retStreams := make([]map[string]interface{}, 0, len(streams))
 	for _, s := range streams {
 		stream := make(map[string]interface{})
@@ -332,7 +332,7 @@ func resourceAppOpticsSpaceChartStreamsGather(d *schema.ResourceData, streams []
 }
 
 func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 
 	spaceID := uint(d.Get("space_id").(int))
 	chartID, err := strconv.ParseUint(d.Id(), 10, 0)
@@ -346,16 +346,16 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	spaceChart := new(librato.SpaceChart)
+	spaceChart := new(appoptics.SpaceChart)
 	if d.HasChange("name") {
-		spaceChart.Name = librato.String(d.Get("name").(string))
+		spaceChart.Name = d.Get("name").(string)
 		fullChart.Name = spaceChart.Name
 	}
 	if d.HasChange("min") {
 		if math.IsNaN(d.Get("min").(float64)) {
 			spaceChart.Min = nil
 		} else {
-			spaceChart.Min = librato.Float(d.Get("min").(float64))
+			spaceChart.Min = d.Get("min").(float64)
 		}
 		fullChart.Min = spaceChart.Min
 	}
@@ -363,56 +363,56 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 		if math.IsNaN(d.Get("max").(float64)) {
 			spaceChart.Max = nil
 		} else {
-			spaceChart.Max = librato.Float(d.Get("max").(float64))
+			spaceChart.Max = d.Get("max").(float64)
 		}
 		fullChart.Max = spaceChart.Max
 	}
 	if d.HasChange("label") {
-		spaceChart.Label = librato.String(d.Get("label").(string))
+		spaceChart.Label = d.Get("label").(string)
 		fullChart.Label = spaceChart.Label
 	}
 	if d.HasChange("related_space") {
-		spaceChart.RelatedSpace = librato.Uint(d.Get("related_space").(uint))
+		spaceChart.RelatedSpace = d.Get("related_space").(uint)
 		fullChart.RelatedSpace = spaceChart.RelatedSpace
 	}
 	if d.HasChange("stream") {
 		vs := d.Get("stream").(*schema.Set)
-		streams := make([]librato.SpaceChartStream, vs.Len())
+		streams := make([]appoptics.SpaceChartStream, vs.Len())
 		for i, streamDataM := range vs.List() {
 			streamData := streamDataM.(map[string]interface{})
-			var stream librato.SpaceChartStream
+			var stream appoptics.SpaceChartStream
 			if v, ok := streamData["metric"].(string); ok && v != "" {
-				stream.Metric = librato.String(v)
+				stream.Metric = v
 			}
 			if v, ok := streamData["source"].(string); ok && v != "" {
-				stream.Source = librato.String(v)
+				stream.Source = v
 			}
 			if v, ok := streamData["composite"].(string); ok && v != "" {
-				stream.Composite = librato.String(v)
+				stream.Composite = v
 			}
 			if v, ok := streamData["group_function"].(string); ok && v != "" {
-				stream.GroupFunction = librato.String(v)
+				stream.GroupFunction = v
 			}
 			if v, ok := streamData["summary_function"].(string); ok && v != "" {
-				stream.SummaryFunction = librato.String(v)
+				stream.SummaryFunction = v
 			}
 			if v, ok := streamData["transform_function"].(string); ok && v != "" {
-				stream.TransformFunction = librato.String(v)
+				stream.TransformFunction = v
 			}
 			if v, ok := streamData["color"].(string); ok && v != "" {
-				stream.Color = librato.String(v)
+				stream.Color = v
 			}
 			if v, ok := streamData["units_short"].(string); ok && v != "" {
-				stream.UnitsShort = librato.String(v)
+				stream.UnitsShort = v
 			}
 			if v, ok := streamData["units_longs"].(string); ok && v != "" {
-				stream.UnitsLong = librato.String(v)
+				stream.UnitsLong = v
 			}
 			if v, ok := streamData["min"].(float64); ok && !math.IsNaN(v) {
-				stream.Min = librato.Float(v)
+				stream.Min = v
 			}
 			if v, ok := streamData["max"].(float64); ok && !math.IsNaN(v) {
-				stream.Max = librato.Float(v)
+				stream.Max = v
 			}
 			streams[i] = stream
 		}
@@ -453,7 +453,7 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAppOpticsSpaceChartDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 
 	spaceID := uint(d.Get("space_id").(int))
 
@@ -471,7 +471,7 @@ func resourceAppOpticsSpaceChartDelete(d *schema.ResourceData, meta interface{})
 	resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, _, err := client.Spaces.GetChart(spaceID, uint(id))
 		if err != nil {
-			if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
+			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 				return nil
 			}
 			return resource.NonRetryableError(err)
