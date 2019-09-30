@@ -39,12 +39,10 @@ func resourceAppOpticsSpaceChart() *schema.Resource {
 			},
 			"min": {
 				Type:     schema.TypeFloat,
-				Default:  math.NaN(),
 				Optional: true,
 			},
 			"max": {
 				Type:     schema.TypeFloat,
-				Default:  math.NaN(),
 				Optional: true,
 			},
 			"label": {
@@ -99,7 +97,7 @@ func resourceAppOpticsSpaceChart() *schema.Resource {
 						"composite": {
 							Type:          schema.TypeString,
 							Optional:      true,
-							ConflictsWith: []string{"stream.metric", "stream.source", "stream.group_function"},
+							ConflictsWith: []string{"stream.metric", "stream.group_function"},
 						},
 						"summary_function": {
 							Type:     schema.TypeString,
@@ -123,12 +121,10 @@ func resourceAppOpticsSpaceChart() *schema.Resource {
 						},
 						"min": {
 							Type:     schema.TypeFloat,
-							Default:  math.NaN(),
 							Optional: true,
 						},
 						"max": {
 							Type:     schema.TypeFloat,
-							Default:  math.NaN(),
 							Optional: true,
 						},
 						"transform_function": {
@@ -195,13 +191,13 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 	}
 	if v, ok := d.GetOk("min"); ok {
 		if math.IsNaN(v.(float64)) {
-			return fmt.Errorf("Error updating AppOptics space chart. 'min' cannot be converted to a float64. %s", d.Get("min"))
+			return fmt.Errorf("Error creating AppOptics space chart. 'min' cannot be converted to a float64. %s", d.Get("min"))
 		}
 		spaceChart.Min = v.(float64)
 	}
 	if v, ok := d.GetOk("max"); ok {
 		if math.IsNaN(v.(float64)) {
-			return fmt.Errorf("Error updating AppOptics space chart. 'max' cannot be converted to a float64. %s", d.Get("max"))
+			return fmt.Errorf("Error creating AppOptics space chart. 'max' cannot be converted to a float64. %s", d.Get("max"))
 		}
 		spaceChart.Max = v.(float64)
 	}
