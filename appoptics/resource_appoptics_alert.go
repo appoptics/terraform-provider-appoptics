@@ -73,6 +73,10 @@ func resourceAppOpticsAlert() *schema.Resource {
 										Type:     schema.TypeBool,
 										Optional: true,
 									},
+									"dynamic": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
 									"values": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -212,6 +216,7 @@ func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) erro
 				for i, tagData := range v {
 					tag := appoptics.Tag{}
 					tag.Grouped = tagData.(map[string]interface{})["grouped"].(bool)
+					tag.Dynamic = tagData.(map[string]interface{})["dynamic"].(bool)
 					tag.Name = tagData.(map[string]interface{})["name"].(string)
 					values := tagData.(map[string]interface{})["values"].([]interface{})
 					valuesInStrings := make([]string, len(values))
@@ -359,6 +364,7 @@ func flattenConditionTags(in []*appoptics.Tag) []interface{} {
 		m := make(map[string]interface{})
 		m["name"] = v.Name
 		m["grouped"] = v.Grouped
+		m["dynamic"] = v.Dynamic
 		if len(v.Values) > 0 {
 			m["values"] = flattenConditionTagsValues(v.Values)
 		}
@@ -435,6 +441,7 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 			for i, tagData := range v {
 				tag := appoptics.Tag{}
 				tag.Grouped = tagData.(map[string]interface{})["grouped"].(bool)
+				tag.Dynamic = tagData.(map[string]interface{})["dynamic"].(bool)
 				tag.Name = tagData.(map[string]interface{})["name"].(string)
 				values := tagData.(map[string]interface{})["values"].([]interface{})
 				valuesInStrings := make([]string, len(values))
