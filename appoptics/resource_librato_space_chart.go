@@ -148,6 +148,7 @@ func resourceAppOpticsSpaceChartHash(v interface{}) int {
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%s-", m["metric"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["composite"].(string)))
+	// TOOD: is this under "stream"?
 	tags, present := m["tag"].([]interface{})
 	if present && len(tags) > 0 {
 		buf.WriteString(fmt.Sprintf("%d-", chartStreamTagsHash(tags)))
@@ -162,6 +163,7 @@ func chartStreamTagsHash(tags []interface{}) int {
 		m := v.(map[string]interface{})
 		buf.WriteString(fmt.Sprintf("%s-", m["name"]))
 		buf.WriteString(fmt.Sprintf("%s-", m["grouped"]))
+		buf.WriteString(fmt.Sprintf("%s-", m["dynamic"]))
 		buf.WriteString(fmt.Sprintf("%d-", chartStreamTagsValuesHash(m["values"].([]interface{}))))
 	}
 
@@ -327,7 +329,9 @@ func resourceAppOpticsSpaceChartStreamsGather(d *schema.ResourceData, streams []
 		stream := make(map[string]interface{})
 		// TODO: support all options in appoptics.Chart
 		stream["metric"] = s.Metric
-		stream["tags"] = s.Tags
+		// TODO:
+		// * appoptics_space_chart.foobar: Invalid address to set: []string{"stream", "0", "tags"}
+		stream["tags"] = flattenStreamTags(s.Tags)
 		stream["composite"] = s.Composite
 		stream["group_function"] = s.GroupFunction
 		stream["summary_function"] = s.SummaryFunction
@@ -339,6 +343,29 @@ func resourceAppOpticsSpaceChartStreamsGather(d *schema.ResourceData, streams []
 	}
 
 	return retStreams
+}
+
+func flattenStreamTags(in []appoptics.Tag) []interface{} {
+	var out = make([]interface{}, 0, len(in))
+	for _, v := range in {
+		m := make(map[string]interface{})
+		m["name"] = v.Name
+		m["grouped"] = v.Grouped
+		if len(v.Values) > 0 {
+			m["values"] = flattenStreamTagsValues(v.Values)
+		}
+		out = append(out, m)
+	}
+
+	return out
+}
+
+func flattenStreamTagsValues(in []string) []interface{} {
+	out := make([]interface{}, 0, len(in))
+	for _, v := range in {
+		out = append(out, v)
+	}
+	return out
 }
 
 func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{}) error {
