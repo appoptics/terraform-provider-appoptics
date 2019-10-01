@@ -120,11 +120,11 @@ func resourceAppOpticsSpaceChart() *schema.Resource {
 							Optional: true,
 						},
 						"min": {
-							Type:     schema.TypeFloat,
+							Type:     schema.TypeInt,
 							Optional: true,
 						},
 						"max": {
-							Type:     schema.TypeFloat,
+							Type:     schema.TypeInt,
 							Optional: true,
 						},
 						"transform_function": {

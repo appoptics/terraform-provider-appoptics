@@ -152,7 +152,7 @@ resource "appoptics_space" "foobar" {
 resource "appoptics_space_chart" "foobar" {
     space_id = "${appoptics_space.foobar.id}"
     name = "Foo Bar"
-    type = "line"
+	type = "line"
 }`
 
 const testAccCheckAppOpticsSpaceChartConfigNewValue = `
@@ -163,7 +163,9 @@ resource "appoptics_space" "foobar" {
 resource "appoptics_space_chart" "foobar" {
     space_id = "${appoptics_space.foobar.id}"
     name = "Bar Baz"
-    type = "line"
+	type = "line"
+	min = 0
+	max = 100
 }`
 
 const testAccCheckAppOpticsSpaceChartConfigFull = `
@@ -187,8 +189,11 @@ resource "appoptics_space_chart" "foobar" {
     # Minimal metric stream
     stream {
 		metric = "system.cpu.utilization"
-		// TODO
-        source = "*"
+		tag {
+			name = "hostname"
+			grouped = true
+			values = ["host1", "host2"]
+		}
     }
 
     # Minimal composite stream
@@ -199,8 +204,6 @@ resource "appoptics_space_chart" "foobar" {
     # Full metric stream
     stream {
 		metric = "system.cpu.utilization"
-		// TODO
-        // source = "*"
         group_function = "average"
         summary_function = "max"
         name = "CPU usage"
@@ -210,6 +213,11 @@ resource "appoptics_space_chart" "foobar" {
         min = 0
         max = 100
         transform_function = "x * 100"
-        period = 60
+		period = 60
+		tag {
+			name = "hostname"
+			grouped = true
+			values = ["host1", "host2"]
+		}
     }
 }`
