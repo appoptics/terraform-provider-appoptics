@@ -65,3 +65,11 @@ Conditions (`condition`) support the following:
 Attributes (`attributes`) support the following:
 
 * `runbook_url` - a URL for the runbook to be followed when this alert is firing. Used in the AppOptics UI if set.
+
+## Import
+
+Alerts can be imported using the `id`, e.g.
+
+```
+$ terraform import appoptics_alert.foobar 13581321
+```

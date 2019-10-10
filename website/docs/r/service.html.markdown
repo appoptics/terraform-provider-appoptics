@@ -43,3 +43,11 @@ The following attributes are exported:
 * `type` - The type of notificaion.
 * `title` - The alert title.
 * `settings` - a JSON hash of settings specific to the alert type.
+
+## Import
+
+Services can be imported using the `id`, e.g.
+
+```
+$ terraform import appoptics_service.foobar 13581321
+```
