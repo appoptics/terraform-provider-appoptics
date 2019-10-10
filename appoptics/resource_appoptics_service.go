@@ -19,6 +19,9 @@ func resourceAppOpticsService() *schema.Resource {
 		Read:   resourceAppOpticsServiceRead,
 		Update: resourceAppOpticsServiceUpdate,
 		Delete: resourceAppOpticsServiceDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"type": {
