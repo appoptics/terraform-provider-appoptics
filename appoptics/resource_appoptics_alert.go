@@ -20,6 +20,9 @@ func resourceAppOpticsAlert() *schema.Resource {
 		Read:   resourceAppOpticsAlertRead,
 		Update: resourceAppOpticsAlertUpdate,
 		Delete: resourceAppOpticsAlertDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
