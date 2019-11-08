@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/akahn/go-librato/librato"
+	appoptics "github.com/appoptics/appoptics-api-go"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -95,73 +96,74 @@ func resourceAppOpticsMetric() *schema.Resource {
 }
 
 func resourceAppOpticsMetricCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
+	metricName := "some.metric"
 
-	metric := librato.Metric{
-		Name: librato.String(d.Get("name").(string)),
-		Type: librato.String("gauge"),
+	metric := appoptics.Metric{
+		Name: d.Get("name").(string),
+		Type: "gauge",
 	}
 	if a, ok := d.GetOk("display_name"); ok {
-		metric.DisplayName = librato.String(a.(string))
+		metric.DisplayName = a.(string)
 	}
 	if a, ok := d.GetOk("description"); ok {
-		metric.Description = librato.String(a.(string))
+		metric.Description = a.(string)
 	}
 	if a, ok := d.GetOk("period"); ok {
-		metric.Period = librato.Uint(uint(a.(int)))
+		metric.Period = a.(int)
 	}
 	if a, ok := d.GetOk("composite"); ok {
-		metric.Composite = librato.String(a.(string))
-		metric.Type = librato.String("composite")
+		metric.Composite = a.(string)
+		metric.Type = "composite"
 	}
 
 	if a, ok := d.GetOk("attributes"); ok {
 
 		attributeData := a.([]interface{})
 		attributeDataMap := attributeData[0].(map[string]interface{})
-		attributes := new(librato.MetricAttributes)
+		attributes := appoptics.MetricAttributes{}
 
 		if v, ok := attributeDataMap["color"].(string); ok && v != "" {
-			attributes.Color = librato.String(v)
+			attributes.Color = v
 		}
 		if v, ok := attributeDataMap["display_max"].(string); ok && v != "" {
-			attributes.DisplayMax = librato.String(v)
+			attributes.DisplayMax = v
 		}
 		if v, ok := attributeDataMap["display_min"].(string); ok && v != "" {
-			attributes.DisplayMin = librato.String(v)
+			attributes.DisplayMin = v
 		}
 		if v, ok := attributeDataMap["display_units_long"].(string); ok && v != "" {
-			attributes.DisplayUnitsLong = *librato.String(v)
+			attributes.DisplayUnitsLong = v
 		}
 		if v, ok := attributeDataMap["display_units_short"].(string); ok && v != "" {
-			attributes.DisplayUnitsShort = *librato.String(v)
+			attributes.DisplayUnitsShort = v
 		}
 		if v, ok := attributeDataMap["created_by_ua"].(string); ok && v != "" {
-			attributes.CreatedByUA = *librato.String(v)
+			attributes.CreatedByUA = v
 		}
 		if v, ok := attributeDataMap["display_stacked"].(bool); ok {
-			attributes.DisplayStacked = *librato.Bool(v)
+			attributes.DisplayStacked = v
 		}
 		if v, ok := attributeDataMap["gap_detection"].(bool); ok {
-			attributes.GapDetection = *librato.Bool(v)
+			attributes.GapDetection = v
 		}
 		if v, ok := attributeDataMap["aggregate"].(bool); ok {
-			attributes.Aggregate = *librato.Bool(v)
+			attributes.Aggregate = v
 		}
 
 		metric.Attributes = attributes
 	}
 
-	_, err := client.Metrics.Update(&metric)
+	err := client.MetricsService().Update(metricName, &metric)
 	if err != nil {
 		log.Printf("[INFO] ERROR creating Metric: %s", err)
 		return fmt.Errorf("Error creating AppOptics metric: %s", err)
 	}
 
 	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
-		_, _, err := client.Metrics.Get(*metric.Name)
+		_, err := client.MetricsService().Retrieve(metric.Name)
 		if err != nil {
-			if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
+			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
@@ -172,19 +174,19 @@ func resourceAppOpticsMetricCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error creating AppOptics metric: %s", retryErr)
 	}
 
-	d.SetId(*metric.Name)
+	d.SetId(metric.Name)
 	return resourceAppOpticsMetricRead(d, meta)
 }
 
 func resourceAppOpticsMetricRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 
 	id := d.Id()
 
 	log.Printf("[INFO] Reading AppOptics Metric: %s", id)
-	metric, _, err := client.Metrics.Get(id)
+	metric, err := client.MetricsService().Retrieve(id)
 	if err != nil {
-		if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
+		if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 			d.SetId("")
 			return nil
 		}
@@ -194,23 +196,23 @@ func resourceAppOpticsMetricRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("name", metric.Name)
 	d.Set("type", metric.Type)
 
-	if metric.Description != nil {
+	if metric.Description != "" {
 		d.Set("description", metric.Description)
 	}
 
-	if metric.DisplayName != nil {
+	if metric.DisplayName != "" {
 		d.Set("display_name", metric.DisplayName)
 	}
 
-	if metric.Period != nil {
+	if metric.Period != 0 {
 		d.Set("period", metric.Period)
 	}
 
-	if metric.Composite != nil {
+	if metric.Composite != "" {
 		d.Set("composite", metric.Composite)
 	}
 
-	attributes := metricAttributesGather(d, metric.Attributes)
+	attributes := metricAttributesGather(d, &metric.Attributes)
 
 	// Since attributes isn't a simple terraform type (TypeList), it's best to
 	// catch the error returned from the d.Set() function, and handle accordingly.
@@ -222,47 +224,47 @@ func resourceAppOpticsMetricRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceAppOpticsMetricUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 
 	id := d.Id()
 
-	metric := new(librato.Metric)
-	metric.Name = librato.String(id)
+	metric := &appoptics.Metric{}
+	metric.Name = id
 
 	if d.HasChange("type") {
-		metric.Type = librato.String(d.Get("type").(string))
+		metric.Type = d.Get("type").(string)
 	}
 	if d.HasChange("description") {
-		metric.Description = librato.String(d.Get("description").(string))
+		metric.Description = d.Get("description").(string)
 	}
 	if d.HasChange("display_name") {
-		metric.DisplayName = librato.String(d.Get("display_name").(string))
+		metric.DisplayName = d.Get("display_name").(string)
 	}
 	if d.HasChange("period") {
-		metric.Period = librato.Uint(uint(d.Get("period").(int)))
+		metric.Period = d.Get("period").(int)
 	}
 	if d.HasChange("composite") {
-		metric.Composite = librato.String(d.Get("composite").(string))
+		metric.Composite = d.Get("composite").(string)
 	}
 	if d.HasChange("attributes") {
 		attributeData := d.Get("attributes").([]interface{})
 		attributeDataMap := attributeData[0].(map[string]interface{})
-		attributes := new(librato.MetricAttributes)
+		attributes := appoptics.MetricAttributes{}
 
 		if v, ok := attributeDataMap["color"].(string); ok && v != "" {
-			attributes.Color = librato.String(v)
+			attributes.Color = v
 		}
 		if v, ok := attributeDataMap["display_max"].(string); ok && v != "" {
-			attributes.DisplayMax = librato.String(v)
+			attributes.DisplayMax = v
 		}
 		if v, ok := attributeDataMap["display_min"].(string); ok && v != "" {
-			attributes.DisplayMin = librato.String(v)
+			attributes.DisplayMin = v
 		}
 		if v, ok := attributeDataMap["display_units_long"].(string); ok && v != "" {
-			attributes.DisplayUnitsLong = *librato.String(v)
+			attributes.DisplayUnitsLong = v
 		}
 		if v, ok := attributeDataMap["display_units_short"].(string); ok && v != "" {
-			attributes.DisplayUnitsShort = *librato.String(v)
+			attributes.DisplayUnitsShort = v
 		}
 		if v, ok := attributeDataMap["created_by_ua"].(string); ok && v != "" {
 			attributes.CreatedByUA = *librato.String(v)
@@ -281,7 +283,7 @@ func resourceAppOpticsMetricUpdate(d *schema.ResourceData, meta interface{}) err
 
 	log.Printf("[INFO] Updating AppOptics metric: %v", structToString(metric))
 
-	_, err := client.Metrics.Update(metric)
+	err := client.MetricsService().Update(id, metric)
 	if err != nil {
 		return fmt.Errorf("Error updating AppOptics metric: %s", err)
 	}
@@ -297,9 +299,9 @@ func resourceAppOpticsMetricUpdate(d *schema.ResourceData, meta interface{}) err
 		ContinuousTargetOccurence: 5,
 		Refresh: func() (interface{}, string, error) {
 			log.Printf("[INFO] Checking if AppOptics Metric %s was updated yet", id)
-			changedMetric, _, getErr := client.Metrics.Get(id)
-			if getErr != nil {
-				return changedMetric, "", getErr
+			changedMetric, err := client.MetricsService().Retrieve(id)
+			if err != nil {
+				return changedMetric, "", err
 			}
 			return changedMetric, "true", nil
 		},
@@ -315,12 +317,12 @@ func resourceAppOpticsMetricUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceAppOpticsMetricDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*librato.Client)
+	client := meta.(*appoptics.Client)
 
 	id := d.Id()
 
 	log.Printf("[INFO] Deleting Metric: %s", id)
-	_, err := client.Metrics.Delete(id)
+	err := client.MetricsService().Delete(id)
 	if err != nil {
 		return fmt.Errorf("Error deleting Metric: %s", err)
 	}
@@ -329,7 +331,7 @@ func resourceAppOpticsMetricDelete(d *schema.ResourceData, meta interface{}) err
 	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
 
 		log.Printf("[INFO] Getting Metric %s", id)
-		_, _, err := client.Metrics.Get(id)
+		_, err := client.MetricsService().Retrieve(id)
 		if err != nil {
 			if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 				log.Printf("[INFO] Metric %s not found, removing from state", id)
@@ -350,13 +352,13 @@ func resourceAppOpticsMetricDelete(d *schema.ResourceData, meta interface{}) err
 }
 
 // Flattens an attributes hash into something that flatmap.Flatten() can handle
-func metricAttributesGather(d *schema.ResourceData, attributes *librato.MetricAttributes) []map[string]interface{} {
+func metricAttributesGather(d *schema.ResourceData, attributes *appoptics.MetricAttributes) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0, 1)
 
 	if attributes != nil {
 		retAttributes := make(map[string]interface{})
-		if attributes.Color != nil {
-			retAttributes["color"] = *attributes.Color
+		if attributes.Color != "" {
+			retAttributes["color"] = attributes.Color
 		}
 		if attributes.DisplayMax != nil {
 			retAttributes["display_max"] = attributes.DisplayMax

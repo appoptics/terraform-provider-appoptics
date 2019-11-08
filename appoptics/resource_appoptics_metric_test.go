@@ -5,14 +5,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/akahn/go-librato/librato"
+	"github.com/appoptics/appoptics-api-go"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccAppOpticsMetrics(t *testing.T) {
-	var metric librato.Metric
+	var metric appoptics.Metric
 
 	name := fmt.Sprintf("tftest-metric-%s", acctest.RandString(10))
 	typ := "gauge"
@@ -84,14 +85,14 @@ func TestAccAppOpticsMetrics(t *testing.T) {
 }
 
 func testAccCheckAppOpticsMetricDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*librato.Client)
+	client := testAccProvider.Meta().(*appoptics.Client)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "appoptics_metric" {
 			continue
 		}
 
-		_, _, err := client.Metrics.Get(rs.Primary.ID)
+		_, err := client.MetricsService().Retrieve(rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("Metric still exists")
 		}
@@ -100,37 +101,37 @@ func testAccCheckAppOpticsMetricDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAppOpticsMetricName(metric *librato.Metric, name string) resource.TestCheckFunc {
+func testAccCheckAppOpticsMetricName(metric *appoptics.Metric, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if metric.Name == nil || *metric.Name != name {
-			return fmt.Errorf("Bad name: %s", *metric.Name)
+		if metric.Name == "" || metric.Name != name {
+			return fmt.Errorf("Bad name: %s", metric.Name)
 		}
 
 		return nil
 	}
 }
 
-func testAccCheckAppOpticsMetricDescription(metric *librato.Metric, desc string) resource.TestCheckFunc {
+func testAccCheckAppOpticsMetricDescription(metric *appoptics.Metric, desc string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if metric.Description == nil || *metric.Description != desc {
-			return fmt.Errorf("Bad description: %s", *metric.Description)
+		if metric.Description == "" || metric.Description != desc {
+			return fmt.Errorf("Bad description: %s", metric.Description)
 		}
 
 		return nil
 	}
 }
 
-func testAccCheckAppOpticsMetricType(metric *librato.Metric, wantType string) resource.TestCheckFunc {
+func testAccCheckAppOpticsMetricType(metric *appoptics.Metric, wantType string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if metric.Type == nil || *metric.Type != wantType {
-			return fmt.Errorf("Bad metric type: %s. Expected: %s", *metric.Type, wantType)
+		if metric.Type == "" || metric.Type != wantType {
+			return fmt.Errorf("Bad metric type: %s. Expected: %s", metric.Type, wantType)
 		}
 
 		return nil
 	}
 }
 
-func testAccCheckAppOpticsMetricExists(n string, metric *librato.Metric) resource.TestCheckFunc {
+func testAccCheckAppOpticsMetricExists(n string, metric *appoptics.Metric) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
@@ -142,15 +143,15 @@ func testAccCheckAppOpticsMetricExists(n string, metric *librato.Metric) resourc
 			return fmt.Errorf("No Metric ID is set")
 		}
 
-		client := testAccProvider.Meta().(*librato.Client)
+		client := testAccProvider.Meta().(*appoptics.Client)
 
-		foundMetric, _, err := client.Metrics.Get(rs.Primary.ID)
+		foundMetric, err := client.MetricsService().Retrieve(rs.Primary.ID)
 
 		if err != nil {
 			return err
 		}
 
-		if foundMetric.Name == nil || *foundMetric.Name != rs.Primary.ID {
+		if foundMetric.Name == "" || foundMetric.Name != rs.Primary.ID {
 			return fmt.Errorf("Metric not found")
 		}
 
