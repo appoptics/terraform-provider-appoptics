@@ -1,21 +1,21 @@
 ---
-layout: "librato"
-page_title: "Librato: librato_service"
-sidebar_current: "docs-librato-resource-service"
+layout: "appoptics"
+page_title: "AppOptics: appoptics_service"
+sidebar_current: "docs-appoptics-resource-service"
 description: |-
-  Provides a Librato service resource. This can be used to create and manage notification services on Librato.
+  Provides a AppOptics service resource. This can be used to create and manage notification services on AppOptics.
 ---
 
-# librato\_service
+# appoptics\_service
 
-Provides a Librato Service resource. This can be used to
-create and manage notification services on Librato.
+Provides a AppOptics Service resource. This can be used to
+create and manage notification services on AppOptics.
 
 ## Example Usage
 
 ```hcl
-# Create a new Librato service
-resource "librato_service" "email" {
+# Create a new AppOptics service
+resource "appoptics_service" "email" {
   title = "Email the admins"
   type  = "mail"
 
@@ -29,7 +29,7 @@ EOF
 
 ## Argument Reference
 
-The following arguments are supported. Please check the [relevant documentation](https://github.com/librato/librato-services/tree/master/services) for each type of alert.
+The following arguments are supported. Please check the [relevant documentation](https://github.com/appoptics/appoptics-services/tree/master/services) for each type of alert.
 
 * `type` - (Required) The type of notificaion.
 * `title` - (Required) The alert title.
@@ -43,3 +43,11 @@ The following attributes are exported:
 * `type` - The type of notificaion.
 * `title` - The alert title.
 * `settings` - a JSON hash of settings specific to the alert type.
+
+## Import
+
+Services can be imported using the `id`, e.g.
+
+```
+$ terraform import appoptics_service.foobar 13581321
+```

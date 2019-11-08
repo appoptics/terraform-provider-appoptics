@@ -1,21 +1,21 @@
 ---
-layout: "librato"
-page_title: "Librato: librato_space"
-sidebar_current: "docs-librato-resource-space"
+layout: "appoptics"
+page_title: "AppOptics: appoptics_space"
+sidebar_current: "docs-appoptics-resource-space"
 description: |-
-  Provides a Librato Space resource. This can be used to create and manage spaces on Librato.
+  Provides a AppOptics Space resource. This can be used to create and manage spaces on AppOptics.
 ---
 
-# librato\_space
+# appoptics\_space
 
-Provides a Librato Space resource. This can be used to
-create and manage spaces on Librato.
+Provides a AppOptics Space resource. This can be used to
+create and manage spaces on AppOptics.
 
 ## Example Usage
 
 ```hcl
-# Create a new Librato space
-resource "librato_space" "default" {
+# Create a new AppOptics space
+resource "appoptics_space" "default" {
   name = "My New Space"
 }
 ```

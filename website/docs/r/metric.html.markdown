@@ -1,20 +1,20 @@
 ---
-layout: "librato"
-page_title: "Librato: librato_metric"
-sidebar_current: "docs-librato-resource-metric"
+layout: "appoptics"
+page_title: "AppOptics: appoptics_metric"
+sidebar_current: "docs-appoptics-resource-metric"
 description: |-
-  Provides a Librato Metric resource. This can be used to create and manage metrics on Librato.
+  Provides a AppOptics Metric resource. This can be used to create and manage metrics on AppOptics.
 ---
 
-# librato\_metric
+# appoptics\_metric
 
-Provides a Librato Metric resource. This can be used to create and manage metrics on Librato.
+Provides a AppOptics Metric resource. This can be used to create and manage metrics on AppOptics.
 
 ## Example Usage
 
 ```hcl
-# Create a new Librato metric
-resource "librato_metric" "mymetric" {
+# Create a new AppOptics metric
+resource "appoptics_metric" "mymetric" {
     name = "MyMetric"
     type = "counter"
     description = "A Test Metric"

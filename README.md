@@ -16,17 +16,17 @@ Requirements
 Building The Provider
 ---------------------
 
-Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-librato`
+Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-appoptics`
 
 ```sh
 $ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
-$ git clone git@github.com:terraform-providers/terraform-provider-librato
+$ git clone git@github.com:terraform-providers/terraform-provider-appoptics
 ```
 
 Enter the provider directory and build the provider
 
 ```sh
-$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-librato
+$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-appoptics
 $ make build
 ```
 
@@ -44,7 +44,7 @@ To compile the provider, run `make build`. This will build the provider and put 
 ```sh
 $ make bin
 ...
-$ $GOPATH/bin/terraform-provider-librato
+$ $GOPATH/bin/terraform-provider-appoptics
 ...
 ```
 
