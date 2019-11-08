@@ -61,3 +61,7 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 ```sh
 $ make testacc
 ```
+
+## Env Vars
+* `set -gx TF_ACC 1` -- flag for creating live resources
+* `set -gx APPOPTICS_TOKEN` -- API Token (secret!) for AO
