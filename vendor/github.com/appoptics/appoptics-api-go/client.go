@@ -18,12 +18,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Version number of this package.
-const (
-	MajorVersion = 0
-	MinorVersion = 2
-	PatchVersion = 3
-)
 
 const (
 	// MeasurementPostMaxBatchSize defines the max number of Measurements to send to the API at once
@@ -36,16 +30,13 @@ const (
 )
 
 var (
-	// Version is the current version of this httpClient
-
 	regexpIllegalNameChars = regexp.MustCompile("[^A-Za-z0-9.:_-]") // from https://www.AppOptics.com/docs/api/#measurements
 	// ErrBadStatus is returned if the AppOptics API returns a non-200 error code.
 	ErrBadStatus = errors.New("Received non-OK status from AppOptics POST")
+	client = &http.Client{
+		Timeout: 30 * time.Second,
+	}
 )
-
-func Version() string {
-	return fmt.Sprintf("%d.%d.%d", MajorVersion, MinorVersion, PatchVersion)
-}
 
 // ServiceAccessor defines an interface for talking to via domain-specific service constructs
 type ServiceAccessor interface {
@@ -117,13 +108,7 @@ func NewClient(token string, opts ...func(*Client) error) *Client {
 	c := &Client{
 		token:   token,
 		baseURL: baseURL,
-		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
-			Transport: &http.Transport{
-				MaxIdleConnsPerHost: 4,
-				IdleConnTimeout:     30 * time.Second,
-			},
-		},
+		httpClient: client,
 	}
 
 	c.alertsService = NewAlertsService(c)
@@ -201,6 +186,14 @@ func BaseURLClientOption(urlString string) ClientOption {
 func SetDebugMode() ClientOption {
 	return func(c *Client) error {
 		c.debugMode = true
+		return nil
+	}
+}
+
+// SetHTTPClient allows the user to provide a custom http.Client configuration
+func SetHTTPClient(client *http.Client) ClientOption {
+	return func(c *Client) error {
+		c.httpClient = client
 		return nil
 	}
 }
@@ -288,10 +281,6 @@ func (c *Client) Do(req *http.Request, respData interface{}) (*http.Response, er
 
 	defer resp.Body.Close()
 	if respData != nil {
-		if writer, ok := respData.(io.Writer); ok {
-			_, err := io.Copy(writer, resp.Body)
-			return resp, err
-		}
 		err = json.NewDecoder(resp.Body).Decode(respData)
 	}
 
@@ -309,7 +298,7 @@ func (c *Client) completeUserAgentString() string {
 
 // clientVersionString returns the canonical name-and-version string
 func clientVersionString() string {
-	return fmt.Sprintf("%s-v%s", clientIdentifier, Version())
+	return fmt.Sprintf("%s", clientIdentifier)
 }
 
 // checkError creates an ErrorResponse from the http.Response.Body, if there is one
