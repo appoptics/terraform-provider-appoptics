@@ -36,7 +36,7 @@ type AlertCondition struct {
 	ID              int     `json:"id,omitempty"`
 	Type            string  `json:"type,omitempty"`
 	MetricName      string  `json:"metric_name,omitempty"`
-	Threshold       float64 `json:"threshold,omitempty"`
+	Threshold       float64 `json:"threshold"`
 	SummaryFunction string  `json:"summary_function,omitempty"`
 	Duration        int     `json:"duration,omitempty"`
 	DetectReset     bool    `json:"detect_reset,omitempty"`

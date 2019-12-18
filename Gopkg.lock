@@ -50,12 +50,12 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:9bb1929078c6e8d1857efae76cfa04c1bf692f6747336e204d8a17617be92bee"
+  digest = "1:3083879473b3880eade76ded4e6c34c9374283dc39e056c6ba54733ff0868567"
   name = "github.com/appoptics/appoptics-api-go"
   packages = ["."]
   pruneopts = "UT"
-  revision = "69abc66ddf3a4700e4c1400bafdab89ec947259c"
-  version = "0.3.2"
+  revision = "948a740c2a0927e5049310e23f6a1beb6f2f1c0a"
+  version = "0.5.1"
 
 [[projects]]
   digest = "1:c47f4964978e211c6e566596ec6246c329912ea92e9bb99c00798bb4564c5b09"
