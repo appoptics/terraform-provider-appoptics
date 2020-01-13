@@ -1,11 +1,17 @@
 TEST?=$$(go list ./... |grep -v 'vendor')
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=librato
+plugin_name=terraform-provider-appoptics
+plugin_path=~/.terraform.d/plugins
+
 
 default: build
 
-build: fmtcheck
-	go install
+build:
+	go build -o $(plugin_name)
+
+user-install:
+	mkdir -p $(plugin_path) && go build -o $(plugin_path)/$(plugin_name)
 
 test: fmtcheck
 	go test -i $(TEST) || exit 1
@@ -41,19 +47,6 @@ test-compile:
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
-website:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
-
-website-test:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
 .PHONY: build test testacc vet fmt fmtcheck errcheck vendor-status test-compile website website-test
 
