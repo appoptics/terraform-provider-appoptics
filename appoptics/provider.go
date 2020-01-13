@@ -40,7 +40,6 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		url = "https://api.appoptics.com/v1/"
 	}
 
-	//client := appoptics.NewClient(d.Get("token").(string), appoptics.BaseURLClientOption(url))
 	client := appoptics.NewClient(d.Get("token").(string),
 		appoptics.BaseURLClientOption(url),
 		appoptics.SetDebugMode(),
