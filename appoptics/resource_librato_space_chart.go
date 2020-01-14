@@ -258,7 +258,7 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error creating AppOptics space chart %s: %s", spaceChart.Name, err)
 	}
 
-	resource.Retry(1*time.Minute, func() *resource.RetryError {
+	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, err := client.ChartsService().Retrieve(spaceChartResult.ID, spaceID)
 		if err != nil {
 			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
@@ -268,6 +268,10 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 		}
 		return nil
 	})
+
+	if retryErr != nil {
+		return retryErr
+	}
 
 	return resourceAppOpticsSpaceChartReadResult(d, spaceChartResult)
 }
@@ -443,10 +447,10 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 			if v, ok := streamData["units_longs"].(string); ok && v != "" {
 				stream.UnitsLong = v
 			}
-			if v, ok := streamData["min"].(int); ok && !math.IsNaN(float64(v)) {
+			if v, ok := streamData["min"].(int); ok {
 				stream.Min = v
 			}
-			if v, ok := streamData["max"].(int); ok && !math.IsNaN(float64(v)) {
+			if v, ok := streamData["max"].(int); ok {
 				stream.Max = v
 			}
 			streams[i] = stream
@@ -503,7 +507,7 @@ func resourceAppOpticsSpaceChartDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error deleting space: %s", err)
 	}
 
-	resource.Retry(1*time.Minute, func() *resource.RetryError {
+	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, err := client.ChartsService().Retrieve(id, spaceID)
 		if err != nil {
 			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
@@ -513,6 +517,10 @@ func resourceAppOpticsSpaceChartDelete(d *schema.ResourceData, meta interface{})
 		}
 		return resource.RetryableError(fmt.Errorf("space chart still exists"))
 	})
+
+	if err != nil {
+		return retryErr
+	}
 
 	d.SetId("")
 	return nil

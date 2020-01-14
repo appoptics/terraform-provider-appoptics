@@ -45,9 +45,7 @@ func resourceAppOpticsService() *schema.Resource {
 // Takes JSON in a string. Decodes JSON into
 // settings hash
 func resourceAppOpticsServicesExpandSettings(rawSettings string) (map[string]string, error) {
-	var settings map[string]string
-
-	settings = make(map[string]string)
+	settings := make(map[string]string)
 	err := json.Unmarshal([]byte(rawSettings), &settings)
 	if err != nil {
 		return nil, fmt.Errorf("Error decoding JSON: %s", err)
@@ -103,7 +101,7 @@ func resourceAppOpticsServiceCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error creating AppOptics service: %s", err)
 	}
 
-	resource.Retry(1*time.Minute, func() *resource.RetryError {
+	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, err := client.ServicesService().Retrieve(serviceResult.ID)
 		if err != nil {
 			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
@@ -113,6 +111,10 @@ func resourceAppOpticsServiceCreate(d *schema.ResourceData, meta interface{}) er
 		}
 		return nil
 	})
+
+	if retryErr != nil {
+		return retryErr
+	}
 
 	d.SetId(strconv.Itoa(serviceResult.ID))
 	return resourceAppOpticsServiceReadResult(d, *serviceResult)
@@ -141,10 +143,10 @@ func resourceAppOpticsServiceRead(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAppOpticsServiceReadResult(d *schema.ResourceData, service appoptics.Service) error {
 	d.SetId(strconv.FormatUint(uint64(service.ID), 10))
-	d.Set("type", service.Type)
-	d.Set("title", service.Title)
+	d.Set("type", service.Type)   //nolint
+	d.Set("title", service.Title) //nolint
 	settings, _ := resourceAppOpticsServicesFlatten(service.Settings)
-	d.Set("settings", settings)
+	d.Set("settings", settings) //nolint
 
 	return nil
 }
@@ -223,7 +225,7 @@ func resourceAppOpticsServiceDelete(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error deleting Service: %s", err)
 	}
 
-	resource.Retry(1*time.Minute, func() *resource.RetryError {
+	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, err := client.ServicesService().Retrieve(int(id))
 		if err != nil {
 			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
@@ -233,6 +235,10 @@ func resourceAppOpticsServiceDelete(d *schema.ResourceData, meta interface{}) er
 		}
 		return resource.RetryableError(fmt.Errorf("service still exists"))
 	})
+
+	if retryErr != nil {
+		return retryErr
+	}
 
 	d.SetId("")
 	return nil
