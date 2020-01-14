@@ -7,5 +7,6 @@ import (
 
 func main() {
 	plugin.Serve(&plugin.ServeOpts{
-		ProviderFunc: appoptics.Provider})
+		ProviderFunc: appoptics.Provider,
+	})
 }
