@@ -518,7 +518,7 @@ func resourceAppOpticsSpaceChartDelete(d *schema.ResourceData, meta interface{})
 		return resource.RetryableError(fmt.Errorf("space chart still exists"))
 	})
 
-	if err != nil {
+	if retryErr != nil {
 		return retryErr
 	}
 
