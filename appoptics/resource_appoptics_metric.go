@@ -193,23 +193,23 @@ func resourceAppOpticsMetricRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error reading AppOptics Metric %s: %s", id, err)
 	}
 
-	d.Set("name", metric.Name)
-	d.Set("type", metric.Type)
+	d.Set("name", metric.Name) //nolint
+	d.Set("type", metric.Type) //nolint
 
 	if metric.Description != "" {
-		d.Set("description", metric.Description)
+		d.Set("description", metric.Description) //nolint
 	}
 
 	if metric.DisplayName != "" {
-		d.Set("display_name", metric.DisplayName)
+		d.Set("display_name", metric.DisplayName) //nolint
 	}
 
 	if metric.Period != 0 {
-		d.Set("period", metric.Period)
+		d.Set("period", metric.Period) //nolint
 	}
 
 	if metric.Composite != "" {
-		d.Set("composite", metric.Composite)
+		d.Set("composite", metric.Composite) //nolint
 	}
 
 	attributes := metricAttributesGather(d, &metric.Attributes)

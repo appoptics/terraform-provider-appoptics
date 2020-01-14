@@ -297,7 +297,7 @@ func resourceAppOpticsAlertRead(d *schema.ResourceData, meta interface{}) error 
 	}
 	log.Printf("[INFO] Received AppOptics Alert: %s", alert.Name)
 
-	d.Set("name", alert.Name)
+	d.Set("name", alert.Name) //nolint
 
 	if err := d.Set("description", alert.Description); err != nil {
 		return err

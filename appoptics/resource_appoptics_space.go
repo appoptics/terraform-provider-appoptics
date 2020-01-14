@@ -38,7 +38,7 @@ func resourceAppOpticsSpaceCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error creating AppOptics space %s: %s", name, err)
 	}
 
-	resource.Retry(1*time.Minute, func() *resource.RetryError {
+	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, err := client.SpacesService().Retrieve(space.ID)
 		if err != nil {
 			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
@@ -48,6 +48,10 @@ func resourceAppOpticsSpaceCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 		return nil
 	})
+
+	if retryErr != nil {
+		return retryErr
+	}
 
 	d.SetId(strconv.Itoa(space.ID))
 	return resourceAppOpticsSpaceReadResult(d, space)
@@ -116,7 +120,7 @@ func resourceAppOpticsSpaceDelete(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error deleting space: %s", err)
 	}
 
-	resource.Retry(1*time.Minute, func() *resource.RetryError {
+	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, err := client.SpacesService().Retrieve(int(id))
 		if err != nil {
 			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
@@ -126,6 +130,10 @@ func resourceAppOpticsSpaceDelete(d *schema.ResourceData, meta interface{}) erro
 		}
 		return resource.RetryableError(fmt.Errorf("space still exists"))
 	})
+
+	if retryErr != nil {
+		return retryErr
+	}
 
 	d.SetId("")
 	return nil
