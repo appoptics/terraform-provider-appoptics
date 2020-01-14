@@ -1,0 +1,26 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.13.0
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          name: Install golangci-lint
+          command: curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -d -b $(go env GOPATH)/bin v1.18.0
+
+      - run:
+          name: Run lint
+          when: always
+          command: make lint
+
+      - run:
+          name: Run vet
+          when: always
+          command: make vet
+
+      - run:
+          name: Run tests
+          when: always
+          command: make test
