@@ -19,3 +19,11 @@ vet:
 lint:
 	"$$(go env GOPATH)/bin/golangci-lint" run
 
+# Produces artifacts in the dist directory
+# DOES NOT push release artifacts
+test-release:
+	goreleaser --snapshot --skip-publish --rm-dist
+
+# Requires a GITHUB_TOKEN to be set in the environment
+release:
+	goreleaser --rm-dist
