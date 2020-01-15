@@ -22,6 +22,7 @@ resource "appoptics_space" "test_space" {
   name = "${var.tf-name-fragment} Space"
 }
 
+
 //
 // Notification Service
 //
@@ -42,9 +43,10 @@ resource "appoptics_metric" "test_metric"{
   name = "${var.test-metric-name}"
   display_name = "Terraform Test CPU Utilization"
   period = 60
+  type = "gauge"
   attributes = {
     color = "#A3BE8C"
-    summarize_function = "sum"
+    summarize_function = "average"
     display_max = 100.0
     display_units_long = "CPU Utilization Percent"
     display_units_short = "cpu %"
@@ -52,7 +54,7 @@ resource "appoptics_metric" "test_metric"{
 }
 
 //
-// Chart
+// TODO: Chart
 //
 
 //
@@ -73,7 +75,7 @@ resource "appoptics_alert" "test_alert" {
     summary_function = "sum"
 
     tag {
-      name    = "environment"
+      name    = "logical_thing"
       grouped = true
       values  = ["staging"]
     }
@@ -81,7 +83,7 @@ resource "appoptics_alert" "test_alert" {
     tag {
       name    = "event_status"
       grouped = true
-      values  = ["test metric has test metricness"]
+      values  = ["count of scary things"]
     }
 
   }

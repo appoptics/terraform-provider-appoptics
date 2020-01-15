@@ -7,7 +7,7 @@ require (
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/akahn/go-librato v0.0.0-20180802162712-994aa1265ee6
 	github.com/apparentlymart/go-cidr v1.0.0 // indirect
-	github.com/appoptics/appoptics-api-go v0.5.3
+	github.com/appoptics/appoptics-api-go v0.5.4
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.19.11 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect

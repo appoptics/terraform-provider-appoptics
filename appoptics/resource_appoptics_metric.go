@@ -143,6 +143,9 @@ func resourceAppOpticsMetricCreate(d *schema.ResourceData, meta interface{}) err
 		if v, ok := attributeDataMap["created_by_ua"].(string); ok && v != "" {
 			attributes.CreatedByUA = v
 		}
+		if v, ok := attributeDataMap["summarize_function"].(string); ok && v != "" {
+			attributes.SummarizeFunction = v
+		}
 		if v, ok := attributeDataMap["display_stacked"].(bool); ok {
 			attributes.DisplayStacked = v
 		}
@@ -229,9 +232,11 @@ func resourceAppOpticsMetricUpdate(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*appoptics.Client)
 
 	id := d.Id()
+	metric, err := client.MetricsService().Retrieve(id)
 
-	metric := &appoptics.Metric{}
-	metric.Name = id
+	if err != nil {
+		return err
+	}
 
 	if d.HasChange("type") {
 		metric.Type = d.Get("type").(string)
@@ -256,14 +261,17 @@ func resourceAppOpticsMetricUpdate(d *schema.ResourceData, meta interface{}) err
 		if v, ok := attributeDataMap["color"].(string); ok && v != "" {
 			attributes.Color = v
 		}
-		if v, ok := attributeDataMap["display_max"].(string); ok && v != "" {
+		if v, ok := attributeDataMap["display_max"].(float64); ok && v != 0.0 {
 			attributes.DisplayMax = v
 		}
-		if v, ok := attributeDataMap["display_min"].(string); ok && v != "" {
+		if v, ok := attributeDataMap["display_min"].(float64); ok && v != 0.0 {
 			attributes.DisplayMin = v
 		}
 		if v, ok := attributeDataMap["display_units_long"].(string); ok && v != "" {
 			attributes.DisplayUnitsLong = v
+		}
+		if v, ok := attributeDataMap["summarize_function"].(string); ok && v != "" {
+			attributes.SummarizeFunction = v
 		}
 		if v, ok := attributeDataMap["display_units_short"].(string); ok && v != "" {
 			attributes.DisplayUnitsShort = v
@@ -285,7 +293,7 @@ func resourceAppOpticsMetricUpdate(d *schema.ResourceData, meta interface{}) err
 
 	log.Printf("[INFO] Updating AppOptics metric: %v", structToString(metric))
 
-	err := client.MetricsService().Update(id, metric)
+	err = client.MetricsService().Update(id, metric)
 	if err != nil {
 		return fmt.Errorf("Error updating AppOptics metric: %s", err)
 	}
@@ -370,6 +378,9 @@ func metricAttributesGather(d *schema.ResourceData, attributes *appoptics.Metric
 		}
 		if attributes.DisplayUnitsLong != "" {
 			retAttributes["display_units_long"] = attributes.DisplayUnitsLong
+		}
+		if attributes.SummarizeFunction != "" {
+			retAttributes["summarize_function"] = attributes.SummarizeFunction
 		}
 		if attributes.DisplayUnitsShort != "" {
 			retAttributes["display_units_short"] = attributes.DisplayUnitsShort
