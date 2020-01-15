@@ -393,9 +393,12 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	alert := new(appoptics.AlertRequest)
+	theAlert, err := client.AlertsService().Retrieve(int(id))
+	if err != nil {
+		return err
+	}
+	alert := alertToAlertRequest(theAlert)
 	alert.ID = int(id)
-	alert.Name = d.Get("name").(string)
 
 	if d.HasChange("description") {
 		alert.Description = d.Get("description").(string)
@@ -537,4 +540,25 @@ func resourceAppOpticsAlertDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+// used to deal w/ differing structures in API create/read
+func alertToAlertRequest(a *appoptics.Alert) *appoptics.AlertRequest {
+	aReq := &appoptics.AlertRequest{}
+	aReq.ID = a.ID
+	aReq.Name = a.Name
+	aReq.Description = a.Description
+	aReq.Active = a.Active
+	aReq.RearmSeconds = a.RearmSeconds
+	aReq.Conditions = a.Conditions
+	aReq.Attributes = a.Attributes
+	aReq.CreatedAt = a.CreatedAt
+	aReq.UpdatedAt = a.UpdatedAt
+
+	serviceIDs := make([]int, len(a.Services))
+	for i, service := range a.Services {
+		serviceIDs[i] = service.ID
+	}
+	aReq.Services = serviceIDs
+	return aReq
 }
