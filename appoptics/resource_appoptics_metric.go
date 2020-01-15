@@ -27,7 +27,7 @@ func resourceAppOpticsMetric() *schema.Resource {
 			},
 			"type": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 			"display_name": {
 				Type:     schema.TypeString,
@@ -55,12 +55,16 @@ func resourceAppOpticsMetric() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"display_max": {
+						"summarize_function": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"display_max": {
+							Type:     schema.TypeFloat,
+							Optional: true,
+						},
 						"display_min": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeFloat,
 							Optional: true,
 						},
 						"display_units_long": {
@@ -97,8 +101,6 @@ func resourceAppOpticsMetric() *schema.Resource {
 
 func resourceAppOpticsMetricCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*appoptics.Client)
-	metricName := "some.metric"
-
 	metric := appoptics.Metric{
 		Name: d.Get("name").(string),
 		Type: "gauge",
@@ -126,10 +128,10 @@ func resourceAppOpticsMetricCreate(d *schema.ResourceData, meta interface{}) err
 		if v, ok := attributeDataMap["color"].(string); ok && v != "" {
 			attributes.Color = v
 		}
-		if v, ok := attributeDataMap["display_max"].(string); ok && v != "" {
+		if v, ok := attributeDataMap["display_max"].(float64); ok && v != 0.0 {
 			attributes.DisplayMax = v
 		}
-		if v, ok := attributeDataMap["display_min"].(string); ok && v != "" {
+		if v, ok := attributeDataMap["display_min"].(float64); ok && v != 0.0 {
 			attributes.DisplayMin = v
 		}
 		if v, ok := attributeDataMap["display_units_long"].(string); ok && v != "" {
@@ -154,7 +156,7 @@ func resourceAppOpticsMetricCreate(d *schema.ResourceData, meta interface{}) err
 		metric.Attributes = attributes
 	}
 
-	err := client.MetricsService().Update(metricName, &metric)
+	_, err := client.MetricsService().Create(&metric)
 	if err != nil {
 		log.Printf("[INFO] ERROR creating Metric: %s", err)
 		return fmt.Errorf("Error creating AppOptics metric: %s", err)

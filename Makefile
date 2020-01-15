@@ -27,3 +27,9 @@ test-release:
 # Requires a GITHUB_TOKEN to be set in the environment
 release:
 	goreleaser --rm-dist
+
+# Convenient in dev to rebuild the plugin, re-init TF, and run a plan
+bounce: build
+	terraform init && terraform plan
+
+
