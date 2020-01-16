@@ -30,6 +30,6 @@ release:
 
 # Convenient in dev to rebuild the plugin, re-init TF, and run a plan
 bounce: build
-	rm *tfstate* && terraform init && terraform plan
+	rm -f *.tfstate* && terraform init && terraform plan
 
 
