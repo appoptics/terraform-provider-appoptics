@@ -21,11 +21,11 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"appoptics_dashboard":       resourceAppOpticsSpace(),      // name is legacy from Librato
-			"appoptics_dashboard_chart": resourceAppOpticsSpaceChart(), // name is legacy from Librato
-			"appoptics_metric":          resourceAppOpticsMetric(),
-			"appoptics_alert":           resourceAppOpticsAlert(),
-			"appoptics_service":         resourceAppOpticsService(),
+			"appoptics_dashboard":            resourceAppOpticsSpace(),      // name is legacy from Librato
+			"appoptics_dashboard_chart":      resourceAppOpticsSpaceChart(), // name is legacy from Librato
+			"appoptics_metric":               resourceAppOpticsMetric(),
+			"appoptics_alert":                resourceAppOpticsAlert(),
+			"appoptics_notification_service": resourceAppOpticsService(), // changed from API name to differentiate w/ APM Services
 		},
 
 		ConfigureFunc: providerConfigure,

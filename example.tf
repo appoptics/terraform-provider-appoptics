@@ -26,7 +26,7 @@ resource "appoptics_dashboard" "test_dashboard" {
 //
 // Notification Service
 //
-resource "appoptics_service" "test_service"{
+resource "appoptics_notification_service" "test_service"{
   title = "${var.tf-name-fragment} Email Notification Service"
   type = "mail"
   settings = <<EOF

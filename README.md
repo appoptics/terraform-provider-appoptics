@@ -1,67 +1,21 @@
-Terraform Provider
-==================
+## terraform-provider-appoptics
+This provider lets you save clicking in the AO UI by allowing you to produce AppOptics bits alongside the rest of your cloud infratructure.
 
-- Website: https://www.terraform.io
-- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
-- Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
+You're able to programmatically create:
 
-<img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
+* Dashboards
+* Charts
+* Metrics
+* Alerts
+* Notification Services
 
-Requirements
-------------
+### Example usage
+See `example.tf` [in this repo](https://github.com/appoptics/terraform-provider-appoptics/blob/master/example.tf) to understand how to start using the plugin.
 
--	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
--	[Go](https://golang.org/doc/install) 1.8 (to build the provider plugin)
+### Installing
+* Grab the latest release from the [Releases page](https://github.com/appoptics/terraform-provider-appoptics/releases).
+* Place the binary (`terraform-provider-appoptics`) [where Terraform can find it](https://www.terraform.io/docs/plugins/basics.html#installing-plugins)
+* You should now be able to write TF code for AppOptics alongside the rest of your infrastructure code
 
-Building The Provider
----------------------
-
-Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-appoptics`
-
-```sh
-$ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
-$ git clone git@github.com:terraform-providers/terraform-provider-appoptics
-```
-
-Enter the provider directory and build the provider
-
-```sh
-$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-appoptics
-$ make build
-```
-
-Using the provider
-----------------------
-## Fill in for each provider
-
-Developing the Provider
----------------------------
-
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.8+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
-
-To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
-
-```sh
-$ make bin
-...
-$ $GOPATH/bin/terraform-provider-appoptics
-...
-```
-
-In order to test the provider, you can simply run `make test`.
-
-```sh
-$ make test
-```
-
-In order to run the full suite of Acceptance tests, run `make testacc`.
-
-*Note:* Acceptance tests create real resources, and often cost money to run.
-
-```sh
-$ make testacc
-```
-
-## Env Vars
-* `set -gx TF_ACC 1` -- flag for creating live resources
-* `set -gx APPOPTICS_TOKEN` -- API Token (secret!) for AO
+### Issues/Bugs
+Please report bugs in the Issues area of this repo.
