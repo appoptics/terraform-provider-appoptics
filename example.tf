@@ -16,10 +16,10 @@ provider "appoptics" {
 }
 
 //
-// Space
+// Dashboard
 //
-resource "appoptics_space" "test_space" {
-  name = "${var.tf-name-fragment} Space"
+resource "appoptics_dashboard" "test_dashboard" {
+  name = "${var.tf-name-fragment} Dashboard"
 }
 
 
@@ -54,8 +54,28 @@ resource "appoptics_metric" "test_metric"{
 }
 
 //
-// TODO: Chart
+// Chart
 //
+resource "appoptics_dashboard_chart" "test_chart"{
+  space_id = "${appoptics_dashboard.test_dashboard.id}"
+  name = "Test Chart"
+  depends_on = ["appoptics_metric.test_metric"]
+  min = 0
+  max = 100
+  label = "Used"
+
+  stream {
+    metric = "${appoptics_metric.test_metric.name}"
+    color = "#fa7268"
+    units_short = "%"
+    units_long = "Percentage used"
+
+    tags = [{
+        name = "environment"
+        values = ["staging"]
+    }]
+  }
+}
 
 //
 // Alert

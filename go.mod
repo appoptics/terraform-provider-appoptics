@@ -5,7 +5,6 @@ go 1.13
 require (
 	cloud.google.com/go v0.37.2 // indirect
 	github.com/agext/levenshtein v1.2.2 // indirect
-	github.com/akahn/go-librato v0.0.0-20180802162712-994aa1265ee6
 	github.com/apparentlymart/go-cidr v1.0.0 // indirect
 	github.com/appoptics/appoptics-api-go v0.5.4
 	github.com/armon/go-radix v1.0.0 // indirect

@@ -63,7 +63,7 @@ func resourceAppOpticsSpaceChart() *schema.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"stream.composite"},
 						},
-						"tag": {
+						"tags": {
 							Type:          schema.TypeList,
 							Optional:      true,
 							ConflictsWith: []string{"stream.composite"},
@@ -184,7 +184,10 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 
 	spaceID := d.Get("space_id").(int)
 
-	spaceChart := new(appoptics.Chart)
+	spaceChart := &appoptics.Chart{
+		Type: "line", // default per docs
+	}
+
 	if v, ok := d.GetOk("name"); ok {
 		spaceChart.Name = v.(string)
 	}
@@ -255,7 +258,7 @@ func resourceAppOpticsSpaceChartCreate(d *schema.ResourceData, meta interface{})
 
 	spaceChartResult, err := client.ChartsService().Create(spaceChart, spaceID)
 	if err != nil {
-		return fmt.Errorf("Error creating AppOptics space chart %s: %s", spaceChart.Name, err)
+		return fmt.Errorf("Error creating AppOptics chart %s: %s", spaceChart.Name, err)
 	}
 
 	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
@@ -292,7 +295,7 @@ func resourceAppOpticsSpaceChartRead(d *schema.ResourceData, meta interface{}) e
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading AppOptics Space chart %s: %s", d.Id(), err)
+		return fmt.Errorf("Error reading AppOptics chart %s: %s", d.Id(), err)
 	}
 
 	return resourceAppOpticsSpaceChartReadResult(d, chart)
@@ -387,21 +390,21 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	spaceChart := new(appoptics.Chart)
+	spaceChart := &appoptics.Chart{}
 	if d.HasChange("name") {
 		spaceChart.Name = d.Get("name").(string)
 		fullChart.Name = spaceChart.Name
 	}
 	if d.HasChange("min") {
 		if math.IsNaN(d.Get("min").(float64)) {
-			return fmt.Errorf("Error updating AppOptics space chart. 'min' cannot be converted to a float64. %s: %s", d.Get("min"), err)
+			return fmt.Errorf("Error updating AppOptics chart. 'min' cannot be converted to a float64. %s: %s", d.Get("min"), err)
 		}
 		spaceChart.Min = d.Get("min").(float64)
 		fullChart.Min = spaceChart.Min
 	}
 	if d.HasChange("max") {
 		if math.IsNaN(d.Get("max").(float64)) {
-			return fmt.Errorf("Error updating AppOptics space chart. 'max' cannot be converted to a float64. %s: %s", d.Get("max"), err)
+			return fmt.Errorf("Error updating AppOptics chart. 'max' cannot be converted to a float64. %s: %s", d.Get("max"), err)
 		}
 		spaceChart.Max = d.Get("max").(float64)
 		fullChart.Max = spaceChart.Max
@@ -461,7 +464,7 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 
 	_, err = client.ChartsService().Update(spaceChart, spaceID)
 	if err != nil {
-		return fmt.Errorf("Error updating AppOptics space chart %s: %s", spaceChart.Name, err)
+		return fmt.Errorf("Error updating AppOptics chart %s: %s", spaceChart.Name, err)
 	}
 
 	// Wait for propagation since AppOptics updates are eventually consistent
@@ -472,7 +475,7 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 		MinTimeout:                2 * time.Second,
 		ContinuousTargetOccurence: 5,
 		Refresh: func() (interface{}, string, error) {
-			log.Printf("[DEBUG] Checking if AppOptics Space Chart %d was updated yet", chartID)
+			log.Printf("[DEBUG] Checking if AppOptics chart %d was updated yet", chartID)
 			changedChart, getErr := client.ChartsService().Retrieve(chartID, spaceID)
 			if getErr != nil {
 				return changedChart, "", getErr
@@ -485,7 +488,7 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 
 	_, err = wait.WaitForState()
 	if err != nil {
-		return fmt.Errorf("Failed updating AppOptics Space Chart %d: %s", chartID, err)
+		return fmt.Errorf("Failed updating AppOptics chart %d: %s", chartID, err)
 	}
 
 	return resourceAppOpticsSpaceChartRead(d, meta)
@@ -504,7 +507,7 @@ func resourceAppOpticsSpaceChartDelete(d *schema.ResourceData, meta interface{})
 	log.Printf("[INFO] Deleting Chart: %d/%d", spaceID, uint(id))
 	err = client.ChartsService().Delete(id, spaceID)
 	if err != nil {
-		return fmt.Errorf("Error deleting space: %s", err)
+		return fmt.Errorf("Error deleting chart: %s", err)
 	}
 
 	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
@@ -515,7 +518,7 @@ func resourceAppOpticsSpaceChartDelete(d *schema.ResourceData, meta interface{})
 			}
 			return resource.NonRetryableError(err)
 		}
-		return resource.RetryableError(fmt.Errorf("space chart still exists"))
+		return resource.RetryableError(fmt.Errorf("chart still exists"))
 	})
 
 	if retryErr != nil {
