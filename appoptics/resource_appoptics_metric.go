@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/akahn/go-librato/librato"
 	appoptics "github.com/appoptics/appoptics-api-go"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -277,16 +276,16 @@ func resourceAppOpticsMetricUpdate(d *schema.ResourceData, meta interface{}) err
 			attributes.DisplayUnitsShort = v
 		}
 		if v, ok := attributeDataMap["created_by_ua"].(string); ok && v != "" {
-			attributes.CreatedByUA = *librato.String(v)
+			attributes.CreatedByUA = v
 		}
 		if v, ok := attributeDataMap["display_stacked"].(bool); ok {
-			attributes.DisplayStacked = *librato.Bool(v)
+			attributes.DisplayStacked = v
 		}
 		if v, ok := attributeDataMap["gap_detection"].(bool); ok {
-			attributes.GapDetection = *librato.Bool(v)
+			attributes.GapDetection = v
 		}
 		if v, ok := attributeDataMap["aggregate"].(bool); ok {
-			attributes.Aggregate = *librato.Bool(v)
+			attributes.Aggregate = v
 		}
 		metric.Attributes = attributes
 	}
@@ -343,7 +342,7 @@ func resourceAppOpticsMetricDelete(d *schema.ResourceData, meta interface{}) err
 		log.Printf("[INFO] Getting Metric %s", id)
 		_, err := client.MetricsService().Retrieve(id)
 		if err != nil {
-			if errResp, ok := err.(*librato.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
+			if errResp, ok := err.(*appoptics.ErrorResponse); ok && errResp.Response.StatusCode == 404 {
 				log.Printf("[INFO] Metric %s not found, removing from state", id)
 				return nil
 			}
@@ -355,7 +354,7 @@ func resourceAppOpticsMetricDelete(d *schema.ResourceData, meta interface{}) err
 		return resource.RetryableError(fmt.Errorf("metric still exists"))
 	})
 	if retryErr != nil {
-		return fmt.Errorf("Error deleting librato metric: %s", retryErr)
+		return fmt.Errorf("Error deleting AppOptics metric: %s", retryErr)
 	}
 
 	return nil
