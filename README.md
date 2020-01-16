@@ -18,4 +18,4 @@ See `example.tf` [in this repo](https://github.com/appoptics/terraform-provider-
 * You should now be able to write TF code for AppOptics alongside the rest of your infrastructure code
 
 ### Issues/Bugs
-Please report bugs in the Issues area of this repo.
+Please report bugs and request enhancements in the [Issues area](https://github.com/appoptics/terraform-provider-appoptics/issues) of this repo.
