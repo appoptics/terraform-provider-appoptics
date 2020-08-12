@@ -24,6 +24,7 @@ type MetricAttributes struct {
 	CreatedByUA       string      `json:"created_by_ua,omitempty"`
 	GapDetection      bool        `json:"gap_detection,omitempty"`
 	Aggregate         bool        `json:"aggregate,omitempty"`
+	SummarizeFunction string `json:"summarize_function,omitempty"`
 }
 
 type MetricsResponse struct {

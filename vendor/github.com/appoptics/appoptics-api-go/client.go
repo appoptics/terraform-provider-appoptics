@@ -52,13 +52,6 @@ type ServiceAccessor interface {
 	SpacesService() SpacesCommunicator
 }
 
-// ErrorResponse represents the response body returned when the API reports an error
-type ErrorResponse struct {
-	// Errors holds the error information from the API
-	Errors   interface{} `json:"errors"`
-	Response *http.Response
-}
-
 // QueryInfo holds pagination information coming from list actions
 type QueryInfo struct {
 	Found  int `json:"found,omitempty"`
@@ -66,14 +59,6 @@ type QueryInfo struct {
 	Offset int `json:"offset,omitempty"`
 	Total  int `json:"total,omitempty"`
 }
-
-// RequestErrorMessage represents the error schema for request errors
-// TODO: add API reference URLs here
-type RequestErrorMessage map[string][]string
-
-// ParamErrorMessage represents the error schema for param errors
-// TODO: add API reference URLs here
-type ParamErrorMessage []map[string]string
 
 // Client implements ServiceAccessor
 type Client struct {
@@ -247,11 +232,6 @@ func (c *Client) SpacesService() SpacesCommunicator {
 	return c.spacesService
 }
 
-// Error makes ErrorResponse satisfy the error interface and can be used to serialize error responses back to the httpClient
-func (e *ErrorResponse) Error() string {
-	errorData, _ := json.Marshal(e)
-	return string(errorData)
-}
 
 // DefaultPaginationParameters provides a *PaginationParameters with minimum required fields
 func (c *Client) DefaultPaginationParameters(length int) *PaginationParameters {
@@ -264,6 +244,10 @@ func (c *Client) DefaultPaginationParameters(length int) *PaginationParameters {
 
 // Do performs the HTTP request on the wire, taking an optional second parameter for containing a response
 func (c *Client) Do(req *http.Request, respData interface{}) (*http.Response, error) {
+	if c.debugMode {
+		dumpRequest(req)
+	}
+
 	resp, err := c.httpClient.Do(req)
 
 	// error in performing request
@@ -305,6 +289,7 @@ func clientVersionString() string {
 func checkError(resp *http.Response) error {
 	errResponse := &ErrorResponse{}
 	if resp.StatusCode >= 400 {
+		errResponse.Status = resp.Status
 		errResponse.Response = resp
 		if resp.ContentLength != 0 {
 			decoder := json.NewDecoder(resp.Body)
@@ -326,12 +311,28 @@ func dumpResponse(resp *http.Response) {
 	fmt.Printf("response status: %s\n", resp.Status)
 	if resp.ContentLength != 0 {
 		if respBytes, err := ioutil.ReadAll(resp.Body); err != nil {
-			log.Printf("Error reading body: %s", err)
+			log.Printf("error reading body: %s", err)
 			return
 		} else {
 			resp.Body.Close()
 			resp.Body = ioutil.NopCloser(bytes.NewBuffer(respBytes))
-			fmt.Printf("response body: %s\n\n", string(respBytes))
+			log.Printf("response body: %s\n\n", string(respBytes))
 		}
+	}
+}
+
+// dumpRequest is a debugging function which dumps the HTTP request to stdout
+func dumpRequest(req *http.Request)  {
+	if req.Body == nil{
+		return
+	}
+
+	if reqBytes, err := ioutil.ReadAll(req.Body); err != nil {
+		log.Printf("error reading body: %s", err)
+		return
+	} else {
+		req.Body.Close()
+		req.Body = ioutil.NopCloser(bytes.NewBuffer(reqBytes))
+		log.Printf("request body: %s\n\n", string(reqBytes))
 	}
 }
