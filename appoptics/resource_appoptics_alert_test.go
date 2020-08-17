@@ -312,7 +312,7 @@ resource "appoptics_alert" "foobar" {
 
 func testAccCheckAppOpticsAlertConfigFull(name string) string {
 	return fmt.Sprintf(`
-resource "appoptics_service" "foobar" {
+resource "appoptics_notification_service" "foobar" {
     title = "Foo Bar"
     type = "mail"
     settings = <<EOF
@@ -325,7 +325,7 @@ EOF
 resource "appoptics_alert" "foobar" {
 	name = "%s"
 	description = "A Test Alert"
-	services = [ "${appoptics_service.foobar.id}" ]
+	services = [ "${appoptics_notification_service.foobar.id}" ]
 	condition {
 		type        = "above"
 		threshold   = 10
@@ -337,7 +337,7 @@ resource "appoptics_alert" "foobar" {
 			values = ["host1", "host2"]
 		}
 	}
-	attributes {
+	attributes = {
 		runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
 	}
 	rearm_seconds = 300
@@ -346,7 +346,7 @@ resource "appoptics_alert" "foobar" {
 
 func testAccCheckAppOpticsAlertConfigFullUpdate(name string) string {
 	return fmt.Sprintf(`
-resource "appoptics_service" "foobar" {
+resource "appoptics_notification_service" "foobar" {
     title = "Foo Bar"
     type = "mail"
     settings = <<EOF
@@ -359,13 +359,13 @@ EOF
 resource "appoptics_alert" "foobar" {
     name = "%s"
 	description = "A Test Alert"
-	services = [ "${appoptics_service.foobar.id}" ]
+	services = [ "${appoptics_notification_service.foobar.id}" ]
 	condition {
 		type        = "above"
 		threshold   = 10
 		metric_name = "system.cpu.utilization"
 	}
-	attributes {
+	attributes = {
 		runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
 	}
 	rearm_seconds = 1200

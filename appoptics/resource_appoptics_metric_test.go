@@ -164,6 +164,7 @@ func testAccCheckAppOpticsMetricExists(n string, metric *appoptics.Metric) resou
 func gaugeMetricConfig(name, desc string) string {
 	return strings.TrimSpace(fmt.Sprintf(`
     resource "appoptics_metric" "foobar" {
+        type = "gauge"
         name = "%s"
         description = "%s"
         attributes {
@@ -175,6 +176,7 @@ func gaugeMetricConfig(name, desc string) string {
 func compositeMetricConfig(name, typ, desc string) string {
 	return strings.TrimSpace(fmt.Sprintf(`
     resource "appoptics_metric" "foobar" {
+        type = "composite"
         name = "%s"
         description = "%s"
         composite = "s(\"librato.cpu.percent.user\", {\"environment\" : \"prod\", \"service\": \"api\"})"
