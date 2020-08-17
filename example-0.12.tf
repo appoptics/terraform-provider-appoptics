@@ -91,6 +91,10 @@ resource "appoptics_alert" "test_alert" {
   rearm_seconds = 10800
 
   depends_on = [appoptics_metric.test_metric]
+  attributes = {
+    runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
+  }
+
 
   condition {
     type             = "above"

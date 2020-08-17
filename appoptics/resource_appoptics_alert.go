@@ -400,6 +400,9 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 	alert := alertToAlertRequest(theAlert)
 	alert.ID = int(id)
 
+	if d.HasChange("name") {
+		alert.Name = d.Get("name").(string)
+	}
 	if d.HasChange("description") {
 		alert.Description = d.Get("description").(string)
 	}
