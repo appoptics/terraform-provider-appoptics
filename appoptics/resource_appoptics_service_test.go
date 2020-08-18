@@ -21,9 +21,9 @@ func TestAccAppOpticsServiceBasic(t *testing.T) {
 			resource.TestStep{
 				Config: testAccCheckAppOpticsServiceConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAppOpticsServiceExists("appoptics_service.foobar", &service),
+					testAccCheckAppOpticsServiceExists("appoptics_notification_service.foobar", &service),
 					resource.TestCheckResourceAttr(
-						"appoptics_service.foobar", "title", "Foo Bar"),
+						"appoptics_notification_service.foobar", "title", "Foo Bar"),
 				),
 			},
 		},
@@ -41,17 +41,17 @@ func TestAccAppOpticsServiceUpdated(t *testing.T) {
 			resource.TestStep{
 				Config: testAccCheckAppOpticsServiceConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAppOpticsServiceExists("appoptics_service.foobar", &service),
+					testAccCheckAppOpticsServiceExists("appoptics_notification_service.foobar", &service),
 					resource.TestCheckResourceAttr(
-						"appoptics_service.foobar", "title", "Foo Bar"),
+						"appoptics_notification_service.foobar", "title", "Foo Bar"),
 				),
 			},
 			resource.TestStep{
 				Config: testAccCheckAppOpticsServiceConfigNewValue,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAppOpticsServiceExists("appoptics_service.foobar", &service),
+					testAccCheckAppOpticsServiceExists("appoptics_notification_service.foobar", &service),
 					resource.TestCheckResourceAttr(
-						"appoptics_service.foobar", "title", "Bar Baz"),
+						"appoptics_notification_service.foobar", "title", "Bar Baz"),
 				),
 			},
 		},
@@ -62,7 +62,7 @@ func testAccCheckAppOpticsServiceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*appoptics.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "appoptics_service" {
+		if rs.Type != "appoptics_notification_service" {
 			continue
 		}
 
@@ -115,7 +115,7 @@ func testAccCheckAppOpticsServiceExists(n string, service *appoptics.Service) re
 }
 
 const testAccCheckAppOpticsServiceConfigBasic = `
-resource "appoptics_service" "foobar" {
+resource "appoptics_notification_service" "foobar" {
     title = "Foo Bar"
     type = "mail"
     settings = <<EOF
@@ -126,7 +126,7 @@ EOF
 }`
 
 const testAccCheckAppOpticsServiceConfigNewValue = `
-resource "appoptics_service" "foobar" {
+resource "appoptics_notification_service" "foobar" {
     title = "Bar Baz"
     type = "mail"
     settings = <<EOF

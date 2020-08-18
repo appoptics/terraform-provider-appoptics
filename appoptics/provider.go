@@ -39,10 +39,13 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	} else {
 		url = "https://api.appoptics.com/v1/"
 	}
-
-	client := appoptics.NewClient(d.Get("token").(string),
-		appoptics.BaseURLClientOption(url),
-		appoptics.SetDebugMode(),
-	)
-	return client, nil
+	if do_http_debug := os.Getenv("TF_AO_DEBUG"); do_http_debug != "" {
+		return appoptics.NewClient(d.Get("token").(string),
+			appoptics.BaseURLClientOption(url),
+			appoptics.SetDebugMode(),
+		), nil
+	} else {
+		return appoptics.NewClient(d.Get("token").(string),
+			appoptics.BaseURLClientOption(url)), nil
+	}
 }
