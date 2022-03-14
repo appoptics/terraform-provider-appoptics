@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/appoptics/appoptics-api-go"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceAppOpticsSpaceChart() *schema.Resource {
@@ -64,9 +64,9 @@ func resourceAppOpticsSpaceChart() *schema.Resource {
 							ConflictsWith: []string{"stream.composite"},
 						},
 						"tags": {
-							Type:          schema.TypeList,
-							Optional:      true,
-							ConflictsWith: []string{"stream.composite"},
+							Type:     schema.TypeList,
+							Optional: true,
+							//ConflictsWith: []string{"stream.composite"},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -90,14 +90,14 @@ func resourceAppOpticsSpaceChart() *schema.Resource {
 							},
 						},
 						"group_function": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							ConflictsWith: []string{"stream.composite"},
+							Type:     schema.TypeString,
+							Optional: true,
+							//ConflictsWith: []string{"stream.composite"},
 						},
 						"composite": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							ConflictsWith: []string{"stream.metric", "stream.group_function"},
+							Type:     schema.TypeList,
+							Optional: true,
+							// ConflictsWith: []string{"stream.metric", "stream.group_function"},
 						},
 						"summary_function": {
 							Type:     schema.TypeString,

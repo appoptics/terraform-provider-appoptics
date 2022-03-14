@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"github.com/appoptics/appoptics-api-go"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 // Provider returns a schema.Provider for Librato.
