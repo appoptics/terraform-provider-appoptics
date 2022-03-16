@@ -14,7 +14,8 @@ See `example.tf` [in this repo](https://github.com/appoptics/terraform-provider-
 
 ### Installing
 * Grab the latest release from the [Releases page](https://github.com/appoptics/terraform-provider-appoptics/releases).
-* Place the binary (`terraform-provider-appoptics`) [where Terraform can find it](https://www.terraform.io/docs/plugins/basics.html#installing-plugins)
+* Run `make build`.
+* Place the binary (`terraform-provider-appoptics`) at `~/.terraform.d/plugins/solarwinds.com/appopticsprovider/appoptics/1.0.0/darwin_arm64/terraform-provider-appoptics` (Replace `darwin_arm64` by `HOST_ARCH`) [where Terraform can find it](https://www.terraform.io/language/providers/requirements)
 * You should now be able to write TF code for AppOptics alongside the rest of your infrastructure code
 
 ### Issues/Bugs
