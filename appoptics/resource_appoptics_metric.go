@@ -161,7 +161,7 @@ func resourceAppOpticsMetricCreate(d *schema.ResourceData, meta interface{}) err
 	_, err := client.MetricsService().Create(&metric)
 	if err != nil {
 		log.Printf("[INFO] ERROR creating Metric: %s", err)
-		return fmt.Errorf("Error creating AppOptics metric: %s", err)
+		return fmt.Errorf("error creating AppOptics metric: %s", err)
 	}
 
 	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
