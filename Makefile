@@ -7,6 +7,14 @@ default: build
 build:
 	go build -o $(plugin_name)
 
+buildall:
+	env CGO_ENABLED= GOOS="linux" GOARCH="amd64" go build -trimpath -buildmode=pie -ldflags "-s -w" -o  build/$(plugin_name)-linux-amd64
+	env CGO_ENABLED= GOOS="linux" GOARCH="arm64" go build -trimpath -buildmode=pie -ldflags "-s -w" -o  build/$(plugin_name)-linux-arm64
+	env CGO_ENABLED= GOOS="darwin" GOARCH="amd64" go build -trimpath -buildmode=pie -ldflags "-s -w" -o  build/$(plugin_name)-darwin-amd64
+	env CGO_ENABLED= GOOS="darwin" GOARCH="arm64" go build -trimpath -buildmode=pie -ldflags "-s -w" -o  build/$(plugin_name)-darwin-arm64
+	env CGO_ENABLED= GOOS="windows" GOARCH="amd64" go build -trimpath -buildmode=pie -ldflags "-s -w" -o  build/$(plugin_name)-windows-amd64
+	cd build && sha256sum -b * > checksums_sha256.txt
+
 test:
 	go test ./...
 
@@ -18,15 +26,6 @@ vet:
 
 lint:
 	"$$(go env GOPATH)/bin/golangci-lint" run
-
-# Produces artifacts in the dist directory
-# DOES NOT push release artifacts
-test-release:
-	goreleaser --snapshot --skip-publish --rm-dist
-
-# Requires a GITHUB_TOKEN to be set in the environment
-release:
-	goreleaser --rm-dist
 
 # Convenient in dev to rebuild the plugin, re-init TF, and run a plan
 bounce: build
