@@ -10,7 +10,7 @@ You're able to programmatically create:
 * Notification Services
 
 ### Example usage
-See `example.tf` [in this repo](https://github.com/appoptics/terraform-provider-appoptics/blob/master/example.tf) to understand how to start using the plugin.
+See `example.tf` [in this repo](https://github.com/appoptics/terraform-provider-appoptics/blob/master/examples/) to understand how to start using the plugin.
 
 ### Installing
 * Grab the latest release from the [Releases page](https://github.com/appoptics/terraform-provider-appoptics/releases).
