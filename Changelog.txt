@@ -1,4 +1,0 @@
-* 2020-08-17: Updating to terraform 0.13 library to accommodate 0.12+ versions of terraform
-
-In this update, metrics now require a "type" argument to reflect the
-type of the metric as either "gauge" or "composite"'

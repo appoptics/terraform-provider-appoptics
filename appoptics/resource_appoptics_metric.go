@@ -7,8 +7,8 @@ import (
 	"time"
 
 	appoptics "github.com/appoptics/appoptics-api-go"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceAppOpticsMetric() *schema.Resource {
@@ -161,7 +161,7 @@ func resourceAppOpticsMetricCreate(d *schema.ResourceData, meta interface{}) err
 	_, err := client.MetricsService().Create(&metric)
 	if err != nil {
 		log.Printf("[INFO] ERROR creating Metric: %s", err)
-		return fmt.Errorf("Error creating AppOptics metric: %s", err)
+		return fmt.Errorf("error creating AppOptics metric: %s", err)
 	}
 
 	retryErr := resource.Retry(1*time.Minute, func() *resource.RetryError {
