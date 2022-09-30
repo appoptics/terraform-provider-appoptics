@@ -11,32 +11,32 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccAppOpticsSpaceBasic(t *testing.T) {
+func TestAccAppOpticsDashboardBasic(t *testing.T) {
 	var space appoptics.Space
 	name := acctest.RandString(10)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAppOpticsSpaceDestroy,
+		CheckDestroy: testAccCheckAppOpticsDashboardDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAppOpticsSpaceConfigBasic(name),
+				Config: testAccCheckAppOpticsDashboardConfigBasic(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAppOpticsSpaceExists("appoptics_space.foobar", &space),
+					testAccCheckAppOpticsDashboardExists("appoptics_dashboard.foobar", &space),
 					resource.TestCheckResourceAttr(
-						"appoptics_space.foobar", "name", name),
+						"appoptics_dashboard.foobar", "name", name),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckAppOpticsSpaceDestroy(s *terraform.State) error {
+func testAccCheckAppOpticsDashboardDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*appoptics.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "appoptics_space" {
+		if rs.Type != "appoptics_dashboard" {
 			continue
 		}
 
@@ -54,7 +54,7 @@ func testAccCheckAppOpticsSpaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAppOpticsSpaceExists(n string, space *appoptics.Space) resource.TestCheckFunc {
+func testAccCheckAppOpticsDashboardExists(n string, space *appoptics.Space) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
@@ -87,9 +87,9 @@ func testAccCheckAppOpticsSpaceExists(n string, space *appoptics.Space) resource
 	}
 }
 
-func testAccCheckAppOpticsSpaceConfigBasic(name string) string {
+func testAccCheckAppOpticsDashboardConfigBasic(name string) string {
 	return fmt.Sprintf(`
-resource "appoptics_space" "foobar" {
+resource "appoptics_dashboard" "foobar" {
     name = "%s"
 }`, name)
 }
