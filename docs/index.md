@@ -56,3 +56,9 @@ Provider is based on official AppOptics REST API. It's [documentation](https://d
 ## Importing existing resources
 
 The import functionallity is not supported currently. The corresponding issue is [#13](https://github.com/appoptics/terraform-provider-appoptics/issues/13)
+
+## Debugging
+
+For debugging API requests sent by the provider you should set two environment variables:
+TF_LOG=debug - generic logging setting for terraform
+TF_AO_DEBUG=true - variable specific to this provider
