@@ -48,7 +48,7 @@ resource appoptics_alert example_alert {
 
 ### Optional
 
-- `active` (Boolean) - Identifies whether the alert is active (can be triggered). Defaults to true. **NOTE**: [Disabling alert doesn't work currently](https://github.com/appoptics/terraform-provider-appoptics/issues/58)
+- `active` (Boolean) - Identifies whether the alert is active (can be triggered). Defaults to true.
 - `attributes` (Map of String) - The only documented attribute is `runbook_url`
 - `description` (String) - A string describing this alert.
 - `rearm_seconds` (Number) - Specifies the minimum amount of time between sending alert notifications, in seconds.
