@@ -186,6 +186,48 @@ func TestAccAppOpticsAlertManageRunbookUrl(t *testing.T) {
 	})
 }
 
+func TestAccAppOpticsAlertManageAttributeActive(t *testing.T) {
+	var alert appoptics.Alert
+	name := acctest.RandString(10)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAppOpticsAlertDestroy,
+		Steps: []resource.TestStep{
+			// Create disabled alert
+			{
+				Config: testAccCheckAppOpticsAlertDisabled(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "name", name),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "active", "false"),
+				),
+			},
+			// Enable alert
+			{
+				Config: testAccCheckAppOpticsAlertConfigBasic(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "active", "true"),
+				),
+			},
+			// Disable alert
+			{
+				Config: testAccCheckAppOpticsAlertDisabled(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "active", "false"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAppOpticsAlertRename(t *testing.T) {
 	var alert appoptics.Alert
 	name := acctest.RandString(10)
@@ -343,6 +385,20 @@ func testAccCheckAppOpticsAlertConfigBasic(name string) string {
 	return fmt.Sprintf(`
 resource "appoptics_alert" "foobar" {
     name = "%s"
+	description = "A Test Alert"
+	condition {
+		type        = "above"
+		threshold   = 10
+		metric_name = "system.cpu.utilization"
+	}
+}`, name)
+}
+
+func testAccCheckAppOpticsAlertDisabled(name string) string {
+	return fmt.Sprintf(`
+resource "appoptics_alert" "foobar" {
+    name = "%s"
+	active = false
 	description = "A Test Alert"
 	condition {
 		type        = "above"
