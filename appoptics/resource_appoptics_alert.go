@@ -181,7 +181,8 @@ func resourceAppOpticsAlertCreate(d *schema.ResourceData, meta interface{}) erro
 		alert.Description = v.(string)
 	}
 	// GetOK returns not OK for false boolean values, use Get
-	alert.Active = d.Get("active").(bool)
+	var active bool = d.Get("active").(bool)
+	alert.Active = &active
 	if v, ok := d.GetOk("rearm_seconds"); ok {
 		alert.RearmSeconds = v.(int)
 	}
@@ -407,7 +408,8 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 		alert.Description = d.Get("description").(string)
 	}
 	if d.HasChange("active") {
-		alert.Active = d.Get("active").(bool)
+		var active bool = d.Get("active").(bool)
+		alert.Active = &active
 	}
 	if d.HasChange("rearm_seconds") {
 		alert.RearmSeconds = d.Get("rearm_seconds").(int)
