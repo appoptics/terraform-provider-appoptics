@@ -474,12 +474,11 @@ func resourceAppOpticsAlertUpdate(d *schema.ResourceData, meta interface{}) erro
 	alert.Conditions = conditions
 
 	if d.HasChange("attributes") {
-		attributeData := d.Get("attributes").([]interface{})
-		if attributeData[0] == nil {
+		attributeData := d.Get("attributes").(map[string]interface{})
+		if len(attributeData) == 0 {
 			return fmt.Errorf("No attributes found in attributes block")
 		}
-
-		alert.Attributes = attributeData[0].(map[string]interface{})
+		alert.Attributes = attributeData
 	}
 
 	log.Printf("[INFO] Updating AppOptics alert: %s", alert.Name)

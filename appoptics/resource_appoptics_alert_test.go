@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
+var runbookUrl string = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
+
 func TestAccAppOpticsAlertMinimal(t *testing.T) {
 	var alert appoptics.Alert
 	name := acctest.RandString(10)
@@ -73,7 +75,7 @@ func TestAccAppOpticsAlertFull(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "name", name),
 					resource.TestCheckResourceAttr(
-						"appoptics_alert.foobar", "attributes.runbook_url", "https://www.youtube.com/watch?v=oHg5SJYRHA0"),
+						"appoptics_alert.foobar", "attributes.runbook_url", runbookUrl),
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "condition.411654007.metric_name", "system.cpu.utilization"),
 					resource.TestCheckResourceAttr(
@@ -113,7 +115,6 @@ func TestAccAppOpticsAlertUpdated(t *testing.T) {
 				Config: testAccCheckAppOpticsAlertConfigBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
-					testAccCheckAppOpticsAlertDescription(&alert, "A Test Alert"),
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "name", name),
 				),
@@ -125,6 +126,60 @@ func TestAccAppOpticsAlertUpdated(t *testing.T) {
 					testAccCheckAppOpticsAlertDescription(&alert, "A modified Test Alert"),
 					resource.TestCheckResourceAttr(
 						"appoptics_alert.foobar", "description", "A modified Test Alert"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAppOpticsAlertManageRunbookUrl(t *testing.T) {
+	var alert appoptics.Alert
+	var newRunbookUrl string = "https://youtu.be/79DijItQXMM"
+	var newAlertName string = "new_name"
+	name := acctest.RandString(10)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAppOpticsAlertDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckAppOpticsAlertConfigBasic(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "name", name),
+					resource.TestCheckNoResourceAttr(
+						"appoptics_alert.foobar", "attributes.runbook_url"),
+				),
+			},
+			// Check if missing attributes are not blocking other updates
+			{
+				Config: testAccCheckAppOpticsAlertConfigBasic(newAlertName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "name", newAlertName),
+					resource.TestCheckNoResourceAttr(
+						"appoptics_alert.foobar", "attributes.runbook_url"),
+				),
+			},
+			// Check if we can set runbook url
+			{
+				Config: testAccCheckAppOpticsAlertConfigBasicWithRunbook(name, runbookUrl),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "attributes.runbook_url", runbookUrl),
+				),
+			},
+			// Check if we can change runbook url to another value
+			{
+				Config: testAccCheckAppOpticsAlertConfigBasicWithRunbook(name, newRunbookUrl),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAppOpticsAlertExists("appoptics_alert.foobar", &alert),
+					resource.TestCheckResourceAttr(
+						"appoptics_alert.foobar", "attributes.runbook_url", newRunbookUrl),
 				),
 			},
 		},
@@ -297,6 +352,22 @@ resource "appoptics_alert" "foobar" {
 }`, name)
 }
 
+func testAccCheckAppOpticsAlertConfigBasicWithRunbook(name string, runbook string) string {
+	return fmt.Sprintf(`
+resource "appoptics_alert" "foobar" {
+    name = "%s"
+	description = "A Test Alert"
+	condition {
+		type        = "above"
+		threshold   = 10
+		metric_name = "system.cpu.utilization"
+	}
+	attributes = {
+		runbook_url = "%s"
+	}
+}`, name, runbook)
+}
+
 func testAccCheckAppOpticsAlertConfigNewValue(name string) string {
 	return fmt.Sprintf(`
 resource "appoptics_alert" "foobar" {
@@ -338,10 +409,10 @@ resource "appoptics_alert" "foobar" {
 		}
 	}
 	attributes = {
-		runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
+		runbook_url = "%s"
 	}
 	rearm_seconds = 300
-}`, name)
+}`, name, runbookUrl)
 }
 
 func testAccCheckAppOpticsAlertConfigFullUpdate(name string) string {
@@ -366,8 +437,8 @@ resource "appoptics_alert" "foobar" {
 		metric_name = "system.cpu.utilization"
 	}
 	attributes = {
-		runbook_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
+		runbook_url = "%s"
 	}
 	rearm_seconds = 1200
-}`, name)
+}`, name, runbookUrl)
 }
