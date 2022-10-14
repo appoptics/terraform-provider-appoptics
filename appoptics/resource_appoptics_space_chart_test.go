@@ -10,79 +10,79 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccAppOpticsSpaceChartBasic(t *testing.T) {
-	var spaceChart appoptics.Chart
+func TestAccAppOpticsDashboardChartBasic(t *testing.T) {
+	var dashboardChart appoptics.Chart
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAppOpticsSpaceChartDestroy,
+		CheckDestroy: testAccCheckAppOpticsDashboardChartDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccCheckAppOpticsSpaceChartConfigBasic,
+				Config: testAccCheckAppOpticsDashboardChartConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAppOpticsSpaceChartExists("appoptics_space_chart.foobar", &spaceChart),
+					testAccCheckAppOpticsDashboardChartExists("appoptics_dashboard_chart.foobar", &dashboardChart),
 					resource.TestCheckResourceAttr(
-						"appoptics_space_chart.foobar", "name", "Foo Bar"),
+						"appoptics_dashboard_chart.foobar", "name", "Foo Bar"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAppOpticsSpaceChart_Full(t *testing.T) {
-	var spaceChart appoptics.Chart
+func TestAccAppOpticsDashboardChart_Full(t *testing.T) {
+	var dashboardChart appoptics.Chart
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAppOpticsSpaceChartDestroy,
+		CheckDestroy: testAccCheckAppOpticsDashboardChartDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccCheckAppOpticsSpaceChartConfigFull,
+				Config: testAccCheckAppOpticsDashboardChartConfigFull,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAppOpticsSpaceChartExists("appoptics_space_chart.foobar", &spaceChart),
+					testAccCheckAppOpticsDashboardChartExists("appoptics_dashboard_chart.foobar", &dashboardChart),
 					resource.TestCheckResourceAttr(
-						"appoptics_space_chart.foobar", "name", "Foo Bar"),
+						"appoptics_dashboard_chart.foobar", "name", "Foo Bar"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAppOpticsSpaceChart_Updated(t *testing.T) {
-	var spaceChart appoptics.Chart
+func TestAccAppOpticsDashboardChart_Updated(t *testing.T) {
+	var dashboardChart appoptics.Chart
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAppOpticsSpaceChartDestroy,
+		CheckDestroy: testAccCheckAppOpticsDashboardChartDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccCheckAppOpticsSpaceChartConfigBasic,
+				Config: testAccCheckAppOpticsDashboardChartConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAppOpticsSpaceChartExists("appoptics_space_chart.foobar", &spaceChart),
+					testAccCheckAppOpticsDashboardChartExists("appoptics_dashboard_chart.foobar", &dashboardChart),
 					resource.TestCheckResourceAttr(
-						"appoptics_space_chart.foobar", "name", "Foo Bar"),
+						"appoptics_dashboard_chart.foobar", "name", "Foo Bar"),
 				),
 			},
 			resource.TestStep{
-				Config: testAccCheckAppOpticsSpaceChartConfigNewValue,
+				Config: testAccCheckAppOpticsDashboardChartConfigNewValue,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAppOpticsSpaceChartExists("appoptics_space_chart.foobar", &spaceChart),
+					testAccCheckAppOpticsDashboardChartExists("appoptics_dashboard_chart.foobar", &dashboardChart),
 					resource.TestCheckResourceAttr(
-						"appoptics_space_chart.foobar", "name", "Bar Baz"),
+						"appoptics_dashboard_chart.foobar", "name", "Bar Baz"),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckAppOpticsSpaceChartDestroy(s *terraform.State) error {
+func testAccCheckAppOpticsDashboardChartDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*appoptics.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "appoptics_space_chart" {
+		if rs.Type != "appoptics_dashboard_chart" {
 			continue
 		}
 
@@ -105,7 +105,7 @@ func testAccCheckAppOpticsSpaceChartDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAppOpticsSpaceChartExists(n string, spaceChart *appoptics.Chart) resource.TestCheckFunc {
+func testAccCheckAppOpticsDashboardChartExists(n string, dashboardChart *appoptics.Chart) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
@@ -129,67 +129,67 @@ func testAccCheckAppOpticsSpaceChartExists(n string, spaceChart *appoptics.Chart
 			return fmt.Errorf("Space ID not a number")
 		}
 
-		foundSpaceChart, err := client.ChartsService().Retrieve(id, spaceID)
+		foundDashboardChart, err := client.ChartsService().Retrieve(id, spaceID)
 		if err != nil {
 			return err
 		}
 
-		if foundSpaceChart.ID != id {
+		if foundDashboardChart.ID != id {
 			return fmt.Errorf("Space not found")
 		}
 
-		*spaceChart = *foundSpaceChart
+		*dashboardChart = *foundDashboardChart
 
 		return nil
 	}
 }
 
-const testAccCheckAppOpticsSpaceChartConfigBasic = `
-resource "appoptics_space" "foobar" {
+const testAccCheckAppOpticsDashboardChartConfigBasic = `
+resource "appoptics_dashboard" "foobar" {
     name = "Foo Bar"
 }
 
-resource "appoptics_space_chart" "foobar" {
-    space_id = "${appoptics_space.foobar.id}"
+resource "appoptics_dashboard_chart" "foobar" {
+    space_id = "${appoptics_dashboard.foobar.id}"
     name = "Foo Bar"
 	type = "line"
 }`
 
-const testAccCheckAppOpticsSpaceChartConfigNewValue = `
-resource "appoptics_space" "foobar" {
+const testAccCheckAppOpticsDashboardChartConfigNewValue = `
+resource "appoptics_dashboard" "foobar" {
     name = "Foo Bar"
 }
 
-resource "appoptics_space_chart" "foobar" {
-    space_id = "${appoptics_space.foobar.id}"
+resource "appoptics_dashboard_chart" "foobar" {
+    space_id = "${appoptics_dashboard.foobar.id}"
     name = "Bar Baz"
 	type = "line"
 	min = 0
 	max = 100
 }`
 
-const testAccCheckAppOpticsSpaceChartConfigFull = `
-resource "appoptics_space" "foobar" {
+const testAccCheckAppOpticsDashboardChartConfigFull = `
+resource "appoptics_dashboard" "foobar" {
     name = "Foo Bar"
 }
 
-resource "appoptics_space" "barbaz" {
+resource "appoptics_dashboard" "barbaz" {
     name = "Bar Baz"
 }
 
-resource "appoptics_space_chart" "foobar" {
-    space_id = "${appoptics_space.foobar.id}"
+resource "appoptics_dashboard_chart" "foobar" {
+    space_id = "${appoptics_dashboard.foobar.id}"
     name = "Foo Bar"
     type = "line"
     min = 0
     max = 100
     label = "Percent"
-    related_space = "${appoptics_space.barbaz.id}"
+    related_space = "${appoptics_dashboard.barbaz.id}"
 
     # Minimal metric stream
     stream {
 		metric = "system.cpu.utilization"
-		tag {
+		tags {
 			name = "hostname"
 			grouped = true
 			values = ["host1", "host2"]
@@ -214,7 +214,7 @@ resource "appoptics_space_chart" "foobar" {
         max = 100
         transform_function = "x * 100"
 		period = 60
-		tag {
+		tags {
 			name = "hostname"
 			grouped = true
 			values = ["host1", "host2"]

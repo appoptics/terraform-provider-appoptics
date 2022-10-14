@@ -391,6 +391,7 @@ func resourceAppOpticsSpaceChartUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	spaceChart := &appoptics.Chart{}
+	spaceChart.ID = chartID
 	if d.HasChange("name") {
 		spaceChart.Name = d.Get("name").(string)
 		fullChart.Name = spaceChart.Name
